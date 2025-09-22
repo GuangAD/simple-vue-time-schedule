@@ -9,7 +9,8 @@
   "main": "index.ts",
   "scripts": {
     "switch2.7": "vue-demi-switch 2.7",
-    "switch3": "vue-demi-switch 3"
+    "switch3": "vue-demi-switch 3",
+    "switch2": "vue-demi-switch 2"
   },
   "dependencies": {
     "fastest-json-copy": "^1.0.1"

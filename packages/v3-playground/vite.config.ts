@@ -4,7 +4,7 @@ import DtsPlugin from 'vite-plugin-dts'
 
 import { defineConfig, UserConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { baseBuildConfig } from '../../vite.base.config'
+import { baseBuildConfig } from '../../vite.base.config.ts'
 
 // https://vite.dev/config/
 export default defineConfig({

@@ -258,8 +258,8 @@ function insertInterval(intervals: number[][], newInterval: number[]): number[][
   // 2. 合并所有与新区间重叠的区间
   let mergedStart = newStart
   let mergedEnd = newEnd
-
-  while (i < intervals.length && intervals[i][0] <= newEnd) {
+  // intervals[i][1] >= newStart 条件可省略
+  while (i < intervals.length && intervals[i][0] <= newEnd && intervals[i][1] >= newStart) {
     mergedStart = Math.min(mergedStart, intervals[i][0])
     mergedEnd = Math.max(mergedEnd, intervals[i][1])
     i++
@@ -277,55 +277,6 @@ function insertInterval(intervals: number[][], newInterval: number[]): number[][
   return result
 }
 
-function mergeDayTimeRangeList(list: number[][], range: number[]): number[][] {
-  if (!(list instanceof Array) || !(range instanceof Array)) {
-    console.error('ERROR: mergeDayTimeRangeList() Input is not Array.')
-    return []
-  }
-  if (list.length === 0) {
-    return [range]
-  }
-
-  // 由于 list 已经有序，我们只需要找到 range 的插入位置
-  const ranges: number[][] = []
-  let inserted = false
-
-  // 遍历有序的 list，将 range 插入到正确的位置
-  for (const item of list) {
-    if (!inserted && range[0] <= item[0]) {
-      ranges.push(range)
-      inserted = true
-    }
-    ranges.push(item)
-  }
-
-  // 如果 range 比所有现有范围都大，添加到末尾
-  if (!inserted) {
-    ranges.push(range)
-  }
-
-  // 用于存储合并后的结果
-  const merged: number[][] = []
-  let current = ranges[0]
-
-  // 遍历排序后的范围进行合并
-  for (let i = 1; i < ranges.length; i++) {
-    const next = ranges[i]
-    // 如果当前范围的结束时间大于等于下一个范围的开始时间,则可以合并
-    if (current[1] >= next[0] - 1) {
-      current[1] = Math.max(current[1], next[1])
-    } else {
-      merged.push(current)
-      current = next
-    }
-  }
-
-  // 添加最后一个范围
-  merged.push(current)
-
-  return merged
-}
-
 /**
  * 辅助函数：判断一个值是否为普通对象
  * @param {*} obj - 要判断的值
@@ -341,7 +292,8 @@ export {
   getClockString,
   getIndexFromClockString,
   getDayHalfHourFromRange,
-  isPlainObject
+  isPlainObject,
+  insertInterval
 }
 
 // 测试用例

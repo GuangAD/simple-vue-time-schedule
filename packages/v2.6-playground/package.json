@@ -1,5 +1,5 @@
 {
-  "name": "vue2-playground",
+  "name": "v2-playground",
   "private": true,
   "scripts": {
     "dev": "vite",
