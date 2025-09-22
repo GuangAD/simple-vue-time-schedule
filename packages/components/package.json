@@ -1,0 +1,20 @@
+{
+  "name": "components",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "main": "index.ts",
+  "scripts": {
+    "switch2.7": "vue-demi-switch 2.7",
+    "switch3": "vue-demi-switch 3"
+  },
+  "dependencies": {
+    "fastest-json-copy": "^1.0.1"
+  },
+  "devDependencies": {
+    "vue-demi": "^0.14.10"
+  }
+}
