@@ -23,40 +23,26 @@
               <td v-if="showDateLabel">
                 <div class="schedule-label">
                   <!-- 全选复选框 -->
-                  <input
-                    type="checkbox"
-                    v-if="showCheckbox"
-                    :indeterminate="dayIndeterminate[index]"
-                    v-model="dayCheckbox[index]"
-                    @change="handleDayCheck(index)"
-                  />
+                  <input type="checkbox" v-if="showCheckbox" :indeterminate="dayIndeterminate[index]"
+                    v-model="dayCheckbox[index]" @change="handleDayCheck(index)" />
                   <div class="schedule-label-content">
                     {{ dayLabel }}
                   </div>
                 </div>
               </td>
-              <td
-                v-for="(time, i) in dayHalfHour"
-                :key="i"
-                ref="calendarAtomTime"
-                class="schedule-calendar-atom-time"
-                :class="getScheduleCalendarClass(index, time)"
-                :data-day="index"
-                :data-time="time"
+              <td v-for="(time, i) in dayHalfHour" :key="i" ref="calendarAtomTime" class="schedule-calendar-atom-time"
+                :class="getScheduleCalendarClass(index, time)" :data-day="index" :data-time="time"
                 @mousemove="($event) => (canDrop ? setShadow($event) : emptyFunc)"
-                @mousedown="($event) => (canDrop ? setFirstSource(index, time, $event) : emptyFunc())"
-                @mouseenter="
+                @mousedown="($event) => (canDrop ? setFirstSource(index, time, $event) : emptyFunc())" @mouseenter="
                   ($event) =>
                     canDrop
                       ? setHoverData($event, {
-                          time: time,
-                          dayLabel: dayLabel,
-                          day: index
-                        })
+                        time: time,
+                        dayLabel: dayLabel,
+                        day: index
+                      })
                       : emptyFunc()
-                "
-                @mouseleave="() => (canDrop ? removeHoverData() : emptyFunc())"
-              ></td>
+                " @mouseleave="() => (canDrop ? removeHoverData() : emptyFunc())"></td>
             </tr>
             <!-- 底部信息栏 -->
             <tr v-if="props.showFooter">
@@ -82,7 +68,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, defineProps, defineEmits } from 'vue-demi'
-import copy from 'fastest-json-copy'
+import { copy } from 'fastest-json-copy'
 import type { CSSProperties, PropType } from 'vue-demi'
 import { dayHalfHour, dayHour, getContinuousChildArr, getClockString, getDayHalfHourFromRange } from './utils.ts'
 const props = defineProps({
@@ -154,7 +140,7 @@ watch(
   { immediate: true, deep: true }
 )
 
-function emptyFunc() {}
+function emptyFunc() { }
 
 function isDayTimeDisabled(day: number, time: number) {
   return disabledTimeIndex.value[day]?.indexOf(time) !== -1
@@ -691,10 +677,12 @@ onUnmounted(() => {
 .schedule-calendar .schedule-calendar-selected:hover {
   background: #338aff;
 }
+
 .schedule-calendar .schedule-calendar-overlap,
 .schedule-calendar .schedule-calendar-overlap:hover {
   background: #f70909;
 }
+
 .schedule-calendar-table {
   border-collapse: separate;
   border-radius: 4px;
