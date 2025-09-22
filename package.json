@@ -12,13 +12,14 @@
     ".": {
       "import": "./dist/v3/index.es.js",
       "require": "./dist/v3/index.cjs.js",
-      "style": "./dist/v3/index.css"
+      "style": "./dist/v3/index"
     },
+    "./dist/*": "./dist/*",
     "./v2": {
       "import": "./dist/v2/index.es.js",
       "require": "./dist/v2/index.cjs.js"
     },
-    "./v2/style": "./dist/v2/index.css",
+    "./v2/style": "./dist/v2/style.css",
     "./v2.7": {
       "import": "./dist/v2.7/index.es.js",
       "require": "./dist/v2.7/index.cjs.js"
@@ -34,10 +35,10 @@
     "dev:2": "pnpm --filter components switch2 && pnpm --filter v2-playground dev",
     "dev:2.7": "pnpm --filter components switch2.7 && pnpm --filter v2.7-playground dev",
     "dev:3": "pnpm --filter components switch3 && pnpm --filter v3-playground dev",
-    "build:2": "pnpm --filter components switch2 && pnpm --filter v2-playground build-only",
-    "build:2.7": "pnpm --filter components switch2.7 && pnpm --filter v2.7-playground build-only",
+    "build:2": "pnpm --filter components switch2 && pnpm --filter v2-playground build",
+    "build:2.7": "pnpm --filter components switch2.7 && pnpm --filter v2.7-playground build",
     "build:3": "pnpm --filter components switch3 && pnpm --filter v3-playground build-only",
-    "build": "rimraf ./dist && npm run build:2 && npm run build:3"
+    "build": "rimraf ./dist && npm run build:2 && npm run build:2.7 && npm run build:3"
   },
   "devDependencies": {
     "@prettier/plugin-oxc": "^0.0.4",

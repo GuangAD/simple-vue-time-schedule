@@ -17,7 +17,7 @@ export const viteVue2Config = defineConfig({
   },
   build: {
     ...(baseBuildConfig as UserConfig).build,
-    outDir: resolve(__dirname, '../dist/v2')
+    outDir: resolve(__dirname, '../../dist/v2')
   }
 })
 
