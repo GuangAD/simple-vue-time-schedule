@@ -48,7 +48,7 @@
             <tr v-if="props.showFooter">
               <td class="schedule-table-tip" :colspan="maxColspan">
                 <div v-if="hasSelectedTime" class="schedule-selected-time">
-                  <div v-for="(_, index) in value" :key="index">
+                  <div v-for="(_, index) in timeList" :key="index">
                     <p v-if="timePeriodStrArr[index]">
                       <span class="schedule-tip-text">
                         {{ dayLabels[index] }}
@@ -90,7 +90,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'error', 'change'])
 
-const value = ref<number[][]>([])
+const timeList = ref<number[][]>([])
 const timePeriodStrArr = ref<string[]>([])
 const dayCheckbox = ref<boolean[]>([])
 const dayIndeterminate = ref<boolean[]>([])
@@ -120,7 +120,7 @@ const dayLabels = computed(() => {
 })
 
 const hasSelectedTime = computed(() => {
-  return value.value.some((ele) => ele && ele.length >= 1)
+  return timeList.value.some((ele) => ele && ele.length >= 1)
 })
 
 const baseClass = computed(() => {
@@ -182,7 +182,7 @@ function isEqualValue(arr1: number[][], arr2: number[][]) {
 
 function updateValue(newValue: number[][], options = { emitError: false }) {
   const newClonedValue: number[][] = copy(newValue)
-  if (isEqualValue(newClonedValue, value.value)) {
+  if (isEqualValue(newClonedValue, timeList.value)) {
     return
   }
   let isError = false
@@ -200,11 +200,11 @@ function updateValue(newValue: number[][], options = { emitError: false }) {
     }
   })
 
-  value.value = newClonedValue
+  timeList.value = newClonedValue
 
-  for (let i = 0; i < value.value.length; i++) {
-    transformTimeArrToString(value.value[i], i)
-    const len = value.value[i] ? value.value[i].length : 0
+  for (let i = 0; i < timeList.value.length; i++) {
+    transformTimeArrToString(timeList.value[i], i)
+    const len = timeList.value[i] ? timeList.value[i].length : 0
     if (len === 48) {
       dayCheckbox.value[i] = true
       dayIndeterminate.value[i] = false
@@ -261,12 +261,12 @@ function doEmit() {
 }
 
 function selectedJudgement(index: number, item: number) {
-  const dayTimes = value.value[index]
+  const dayTimes = timeList.value[index]
   return dayTimes && dayTimes.indexOf(item) >= 0
 }
 
 function handleDayCheck(index: number) {
-  const copyValue = copy(value.value)
+  const copyValue = copy(timeList.value)
   if (!copyValue[index]) {
     copyValue[index] = []
   }
@@ -407,7 +407,7 @@ function removeHoverData() {
 }
 
 function setFirstSource(week: number, time: number, e: MouseEvent) {
-  const dayTimes = value.value[week]
+  const dayTimes = timeList.value[week]
   isAdd.value = dayTimes ? dayTimes.indexOf(time) === -1 : true
 
   if (e.which !== 1) {
@@ -480,7 +480,7 @@ function updateSelectedValue({
   endTime: number
   endDay: number
 }) {
-  const copyValue = copy(value.value)
+  const copyValue = copy(timeList.value)
 
   calendarAtomTime.value.forEach((item) => {
     const dataTime = parseInt(item.getAttribute('data-time') ?? '0', 10)
