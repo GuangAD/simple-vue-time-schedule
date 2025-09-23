@@ -173,10 +173,9 @@ function getIndexFromClockString(timeStr: string, type: 'start' | 'end'): number
  * @param {string} timeRange - 时间范围字符串 (格式: "HH:MM~HH:MM")
  * @returns {Array} - 半小时 ID 数组，如果输入不合法返回空数组
  */
-function getDayHalfHourFromRange(timeRange: string): number[] {
+function getDayHalfHourFromRange(timeRange: string): TimeRange | [] {
   if (typeof timeRange !== 'string') {
-    console.error('ERROR: getDayHalfHourFromRange() Input timeRange is not string.')
-    return []
+    throw new Error('ERROR: getDayHalfHourFromRange() Input timeRange is not string.')
   }
 
   if (!timeRange) {
@@ -186,8 +185,7 @@ function getDayHalfHourFromRange(timeRange: string): number[] {
   // 验证时间范围格式
   const rangeRegex = /^([01]\d|2[0-3]):([0-5]\d)~(([01]\d|2[0-3]):([0-5]\d)|(24:00))$/
   if (!rangeRegex.test(timeRange)) {
-    console.error('ERROR: getDayHalfHourFromRange() Invalid time range format. Expected HH:MM~HH:MM.')
-    return []
+    throw new Error('ERROR: getDayHalfHourFromRange() Invalid time range format. Expected HH:MM~HH:MM.')
   }
 
   const [startTime, endTime] = timeRange.split('~')
@@ -197,20 +195,13 @@ function getDayHalfHourFromRange(timeRange: string): number[] {
   const endId = getIndexFromClockString(endTime, 'end')
 
   if (startId === -1 || endId === -1) {
-    console.error('ERROR: getDayHalfHourFromRange() Invalid time format in range.')
-    return []
+    throw new Error('ERROR: getDayHalfHourFromRange() Invalid time format in range.')
   }
 
   if (startId > endId) {
-    console.error('ERROR: getDayHalfHourFromRange() Start time must be before end time.')
-    return []
+    throw new Error('ERROR: getDayHalfHourFromRange() Start time must be before end time.')
   }
-
-  // 生成从 startId 到 endId 的连续数组
-  const result: number[] = []
-  for (let i = startId; i <= endId; i++) {
-    result.push(i)
-  }
+  const result = [startId, endId] as TimeRange
 
   return result
 }
@@ -243,14 +234,28 @@ function getDayHalfHourFromRange(timeRange: string): number[] {
 
 函数已经包含了多个测试用例来验证正确性。
  */
-function insertInterval(intervals: number[][], newInterval: number[]): number[][] {
+
+type TimeRange = [number, number?]
+
+function getStartAndEnd(interval: TimeRange): [number, number] {
+  const start = interval[0]
+  const end = interval[1] ?? interval[0]
+  return [start, end]
+}
+
+function isInTimeRange(point: number, range: TimeRange): boolean {
+  const [start, end] = getStartAndEnd(range)
+  return point >= start && point <= end
+}
+
+function insertInterval(intervals: TimeRange[], newInterval: TimeRange): TimeRange[] {
   // 创建副本以避免修改原数组
-  const result: number[][] = []
-  const [newStart, newEnd] = newInterval
+  const result: TimeRange[] = []
+  const [newStart, newEnd] = getStartAndEnd(newInterval)
   let i = 0
 
   // 1. 添加所有结束位置在新区间开始之前的区间（无重叠）
-  while (i < intervals.length && intervals[i][1] < newStart) {
+  while (i < intervals.length && getStartAndEnd(intervals[0])[1] < newStart) {
     result.push([...intervals[i]])
     i++
   }
@@ -259,14 +264,15 @@ function insertInterval(intervals: number[][], newInterval: number[]): number[][
   let mergedStart = newStart
   let mergedEnd = newEnd
   // intervals[i][1] >= newStart 条件可省略
-  while (i < intervals.length && intervals[i][0] <= newEnd && intervals[i][1] >= newStart) {
+  while (i < intervals.length && intervals[i][0] <= newEnd && getStartAndEnd(intervals[i])[1] >= newStart) {
     mergedStart = Math.min(mergedStart, intervals[i][0])
-    mergedEnd = Math.max(mergedEnd, intervals[i][1])
+    mergedEnd = Math.max(mergedEnd, getStartAndEnd(intervals[i])[1])
     i++
   }
 
+  const mergedInterval: TimeRange = mergedStart === mergedEnd ? [mergedStart] : [mergedStart, mergedEnd]
   // 添加合并后的区间
-  result.push([mergedStart, mergedEnd])
+  result.push(mergedInterval)
 
   // 3. 添加所有开始位置在新区间结束之后的区间（无重叠）
   while (i < intervals.length) {
@@ -293,8 +299,11 @@ export {
   getIndexFromClockString,
   getDayHalfHourFromRange,
   isPlainObject,
-  insertInterval
+  insertInterval,
+  isInTimeRange
 }
+
+export type { TimeRange }
 
 // 测试用例
 // console.log('测试用例 1:');
