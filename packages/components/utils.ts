@@ -206,6 +206,25 @@ function getDayHalfHourFromRange(timeRange: string): TimeRange | [] {
   return result
 }
 
+type TimeRange = [number, number?]
+
+function isRangeOverlap(range1: TimeRange, range2: TimeRange): boolean {
+  const [start1, end1] = getStartAndEnd(range1)
+  const [start2, end2] = getStartAndEnd(range2)
+  return start1 <= end2 && start2 <= end1
+}
+
+function getStartAndEnd(interval: TimeRange): [number, number] {
+  const start = interval[0]
+  const end = interval[1] ?? interval[0]
+  return [start, end]
+}
+
+function isInTimeRange(point: number, range: TimeRange): boolean {
+  const [start, end] = getStartAndEnd(range)
+  return point >= start && point <= end
+}
+
 /**
  * 将新区间插入到区间列表中，并合并重叠的区间
  * @param intervals 二维数组，每个元素是一个包含两个数字的数组，表示一个区间 [start, end]
@@ -235,27 +254,17 @@ function getDayHalfHourFromRange(timeRange: string): TimeRange | [] {
 函数已经包含了多个测试用例来验证正确性。
  */
 
-type TimeRange = [number, number?]
-
-function getStartAndEnd(interval: TimeRange): [number, number] {
-  const start = interval[0]
-  const end = interval[1] ?? interval[0]
-  return [start, end]
-}
-
-function isInTimeRange(point: number, range: TimeRange): boolean {
-  const [start, end] = getStartAndEnd(range)
-  return point >= start && point <= end
-}
-
 function insertInterval(intervals: TimeRange[], newInterval: TimeRange): TimeRange[] {
   // 创建副本以避免修改原数组
   const result: TimeRange[] = []
   const [newStart, newEnd] = getStartAndEnd(newInterval)
+
+  console.log('🚀 ~ insertInterval ~ newStart:', newStart, newEnd)
+
   let i = 0
 
   // 1. 添加所有结束位置在新区间开始之前的区间（无重叠）
-  while (i < intervals.length && getStartAndEnd(intervals[0])[1] < newStart) {
+  while (i < intervals.length && getStartAndEnd(intervals[i])[1] < newStart - 1) {
     result.push([...intervals[i]])
     i++
   }
@@ -264,7 +273,7 @@ function insertInterval(intervals: TimeRange[], newInterval: TimeRange): TimeRan
   let mergedStart = newStart
   let mergedEnd = newEnd
   // intervals[i][1] >= newStart 条件可省略
-  while (i < intervals.length && intervals[i][0] <= newEnd && getStartAndEnd(intervals[i])[1] >= newStart) {
+  while (i < intervals.length && intervals[i][0] <= newEnd + 1 && getStartAndEnd(intervals[i])[1] >= newStart - 1) {
     mergedStart = Math.min(mergedStart, intervals[i][0])
     mergedEnd = Math.max(mergedEnd, getStartAndEnd(intervals[i])[1])
     i++
@@ -278,6 +287,61 @@ function insertInterval(intervals: TimeRange[], newInterval: TimeRange): TimeRan
   while (i < intervals.length) {
     result.push([...intervals[i]])
     i++
+  }
+
+  return result
+}
+
+/**
+ * 从有序区间列表中删除指定范围内的部分
+ * @param intervals TimeRange数组，每个元素是一个区间 [start, end?]
+ * @param removeInterval TimeRange，表示要删除的区间 [start, end?]
+ * @returns 删除后的区间列表
+ *
+ * 这个函数的工作原理：
+ * 1. 保持原数组不变：使用展开运算符创建副本
+ * 2. 遍历所有区间，根据与删除区间的关系进行处理：
+ *    - 无交集：完整保留
+ *    - 有交集：保留非重叠部分，可能分割成两个区间
+ * 3. 自动处理单点区间（只有一个元素的情况）
+ *
+ * 时间复杂度：O(n)，其中 n 是原区间列表的长度
+ * 空间复杂度：O(k)，其中 k 是结果区间数量
+ */
+function removeInterval(intervals: TimeRange[], removeInterval: TimeRange): TimeRange[] {
+  // 创建副本以避免修改原数组
+  const result: TimeRange[] = []
+  const [removeStart, removeEnd] = getStartAndEnd(removeInterval)
+
+  for (const interval of intervals) {
+    const [currentStart, currentEnd] = getStartAndEnd(interval)
+
+    // 情况1：当前区间完全在删除区间之前，无交集
+    if (currentEnd < removeStart) {
+      result.push([...interval])
+    }
+    // 情况2：当前区间完全在删除区间之后，无交集
+    else if (currentStart > removeEnd) {
+      result.push([...interval])
+    }
+    // 情况3：当前区间与删除区间有交集
+    else {
+      // 情况3.1：当前区间的左半部分在删除区间之前
+      if (currentStart < removeStart) {
+        const leftEnd = removeStart - 1
+        const leftInterval: TimeRange = currentStart === leftEnd ? [currentStart] : [currentStart, leftEnd]
+        result.push(leftInterval)
+      }
+
+      // 情况3.2：当前区间的右半部分在删除区间之后
+      if (currentEnd > removeEnd) {
+        const rightStart = removeEnd + 1
+        const rightInterval: TimeRange = rightStart === currentEnd ? [currentEnd] : [rightStart, currentEnd]
+        result.push(rightInterval)
+      }
+
+      // 情况3.3：当前区间完全被删除区间包含，不需要添加任何部分
+    }
   }
 
   return result
@@ -300,7 +364,9 @@ export {
   getDayHalfHourFromRange,
   isPlainObject,
   insertInterval,
-  isInTimeRange
+  removeInterval,
+  isInTimeRange,
+  isRangeOverlap
 }
 
 export type { TimeRange }
