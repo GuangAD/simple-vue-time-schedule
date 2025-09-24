@@ -206,7 +206,7 @@ function getDayHalfHourFromRange(timeRange: string): TimeRange | [] {
   return result
 }
 
-type TimeRange = [number, number?]
+type TimeRange = [number] | [number, number]
 
 function isRangeOverlap(range1: TimeRange, range2: TimeRange): boolean {
   const [start1, end1] = getStartAndEnd(range1)
@@ -259,7 +259,7 @@ function insertInterval(intervals: TimeRange[], newInterval: TimeRange): TimeRan
   const result: TimeRange[] = []
   const [newStart, newEnd] = getStartAndEnd(newInterval)
 
-  console.log('🚀 ~ insertInterval ~ newStart:', newStart, newEnd)
+  // console.log('🚀 ~ insertInterval ~ newStart:', newStart, newEnd)
 
   let i = 0
 

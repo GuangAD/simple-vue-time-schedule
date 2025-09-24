@@ -4,8 +4,6 @@
       <!-- 拖拽选择时的遮罩层，显示选择区域 -->
       <div v-if="scheduleShow" ref="schedule" :class="scheduleClass" :style="scheduleStyle"></div>
       <div class="table-wrap">
-        {{ dayCheckbox }}
-        {{ dayIndeterminate }}
         <table class="schedule-calendar-table">
           <thead>
             <tr v-if="showHeader" class="schedule-calendar-time-all">
@@ -25,26 +23,38 @@
               <td v-if="showDateLabel">
                 <div class="schedule-label">
                   <!-- 全选复选框 -->
-                  <input type="checkbox" v-if="showCheckbox" :indeterminate="dayIndeterminate[index]"
-                    v-model="dayCheckbox[index]" @change="handleDayCheck(index)" />
-                  <div class="schedule-label-content">
-                    {{ dayLabel }}{{ dayIndeterminate[index] }}
-                  </div>
+                  <input
+                    type="checkbox"
+                    v-if="showCheckbox"
+                    :indeterminate="dayStates[index].indeterminate"
+                    v-model="dayStates[index].checked"
+                    @change="handleDayCheck(index)"
+                  />
+                  <div class="schedule-label-content">{{ dayLabel }}</div>
                 </div>
               </td>
-              <td v-for="(time, i) in dayHalfHour" :key="i" ref="calendarAtomTime" class="schedule-calendar-atom-time"
-                :class="getScheduleCalendarClass(index, time)" :data-day="index" :data-time="time"
-                @mousemove="($event) => (canDrop ? setShadow($event) : emptyFunc)"
-                @mousedown="($event) => (canDrop ? setFirstSource(index, time, $event) : emptyFunc())" @mouseenter="
+              <td
+                v-for="(time, i) in dayHalfHour"
+                :key="i"
+                ref="calendarAtomTime"
+                class="schedule-calendar-atom-time"
+                :class="getScheduleCalendarClass(index, time)"
+                :data-day="index"
+                :data-time="time"
+                @mousemove="($event) => (canDrop ? debouncedSetShadow($event) : emptyFunc)"
+                @mousedown="($event) => (canDrop ? setFirstSource(index, time, $event) : emptyFunc())"
+                @mouseenter="
                   ($event) =>
                     canDrop
                       ? setHoverData($event, {
-                        time: time,
-                        dayLabel: dayLabel,
-                        day: index
-                      })
+                          time: time,
+                          dayLabel: dayLabel,
+                          day: index
+                        })
                       : emptyFunc()
-                " @mouseleave="() => (canDrop ? removeHoverData() : emptyFunc())"></td>
+                "
+                @mouseleave="() => (canDrop ? removeHoverData() : emptyFunc())"
+              ></td>
             </tr>
             <!-- 底部信息栏 -->
             <tr v-if="props.showFooter">
@@ -69,9 +79,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, defineProps, defineEmits } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, defineProps, defineEmits } from 'vue-demi'
 import { copy } from 'fastest-json-copy'
-import type { CSSProperties, PropType } from 'vue'
+import type { CSSProperties, PropType } from 'vue-demi'
 import {
   dayHalfHour,
   dayHour,
@@ -84,6 +94,7 @@ import {
 } from './utils.ts'
 
 import type { TimeRange } from './utils.ts'
+import debounce from 'debounce'
 
 const props = defineProps({
   canDrop: { type: Boolean, default: true },
@@ -106,11 +117,22 @@ const emit = defineEmits(['update:modelValue', 'error', 'change'])
 
 const timeList = ref<TimeRange[][]>([])
 const timePeriodStrArr = ref<string[]>([])
-const dayCheckbox = ref<boolean[]>([])
-const dayIndeterminate = ref<boolean[]>([])
 
 const disabledTimeRangeList = computed(() => {
   return generateTimeRangeIndexArray(props.disabledTimeRange)
+})
+
+const dayStates = computed(() => {
+  return timeList.value.map((dayTimes, index) => {
+    const len = dayTimes ? dayTimes.length : 0
+    if (len === 1 && dayTimes[0][0] === 0 && dayTimes[0][1] === 47) {
+      return { checked: true, indeterminate: false }
+    } else if (len === 0) {
+      return { checked: false, indeterminate: false }
+    } else {
+      return { checked: false, indeterminate: true }
+    }
+  })
 })
 
 const maxColspan = computed<number>(() => (props.showDateLabel ? 49 : 48))
@@ -119,8 +141,6 @@ watch(
   () => props.dateList,
   (newVal) => {
     const length = newVal.length
-    dayCheckbox.value = Array.from({ length }, () => false)
-    dayIndeterminate.value = Array.from({ length }, () => false)
     timePeriodStrArr.value = Array.from({ length }, () => '')
   },
   {
@@ -154,7 +174,7 @@ watch(
   { immediate: true, deep: true }
 )
 
-function emptyFunc() { }
+function emptyFunc() {}
 
 function isDayTimeDisabled(day: number, time: number) {
   return disabledTimeRangeList.value[day]?.some((range) => isInTimeRange(time, range)) || false
@@ -198,45 +218,15 @@ function isEqualValue(arr1: TimeRange[][], arr2: TimeRange[][]) {
 
 function updateValue(newValue: TimeRange[][], options = { emitError: false }) {
   const newClonedValue: TimeRange[][] = copy(newValue)
-  console.log('🚀 ~ updateValue ~ newClonedValue:', newClonedValue)
 
   let isError = false
-  // TODO: 优化性能
-  // newClonedValue.forEach((arr, day) => {
-
-  //   if (arr) {
-  //     for (let i = arr.length - 1; i >= 0; i--) {
-  //       const hour = arr[i]
-  //       // if (isDayTimeDisabled(day, hour)) {
-  //       //   if (!props.canOverlap) {
-  //       //     arr.splice(i, 1)
-  //       //   }
-  //       //   isError = true
-  //       // }
-  //     }
-  //   }
-
-
-  //   // const overlap = isRangeOverlap(arr, disabledTimeRangeList.value[day])
-  //   // if (arr) {
-  //   //   for (let i = arr.length - 1; i >= 0; i--) {
-  //   //     const hour = arr[i]
-  //   //     // if (isDayTimeDisabled(day, hour)) {
-  //   //     //   if (!props.canOverlap) {
-  //   //     //     arr.splice(i, 1)
-  //   //     //   }
-  //   //     //   isError = true
-  //   //     // }
-  //   //   }
-  //   // }
-  // })
 
   for (let i = 0; i < newClonedValue.length; i++) {
     if (newClonedValue[i]) {
       const disabledTimeRange = disabledTimeRangeList.value[i]
       if (disabledTimeRange) {
         for (const range of disabledTimeRange) {
-          const isOverlap = newClonedValue[i].some(item => isRangeOverlap(item, range))
+          const isOverlap = newClonedValue[i].some((item) => isRangeOverlap(item, range))
           if (isOverlap) {
             // oxlint-disable-next-line max-depth
             if (!props.canOverlap) {
@@ -260,31 +250,12 @@ function updateValue(newValue: TimeRange[][], options = { emitError: false }) {
 
     doEmit()
   }
-
 }
 
 function effectTimeListChange() {
   for (let i = 0; i < timeList.value.length; i++) {
     transformTimeArrToString(timeList.value[i], i)
-    const len = timeList.value[i] ? timeList.value[i].length : 0
-    if (len === 1 && timeList.value[i][0][0] === 0 && timeList.value[i][0][1] === 47) {
-      dayCheckbox.value.splice(i, 1, true)
-      dayIndeterminate.value.splice(i, 1, false)
-      // dayCheckbox.value[i] = true
-      // dayIndeterminate.value[i] = false
-    } else if (len === 0) {
-      dayCheckbox.value.splice(i, 1, false)
-      dayIndeterminate.value.splice(i, 1, false)
-      // dayCheckbox.value[i] = false
-      // dayIndeterminate.value[i] = false
-    } else {
-      dayCheckbox.value.splice(i, 1, false)
-      dayIndeterminate.value.splice(i, 1, true)
-      // dayCheckbox.value[i] = false
-      // dayIndeterminate.value[i] = true
-    }
   }
-  console.log("🚀 ~ effectTimeListChange ~ dayIndeterminate:", dayIndeterminate)
 }
 
 function generateTimeRangeIndexArray(list: string[][]) {
@@ -327,7 +298,7 @@ function selectedJudgement(index: number, item: number) {
 function handleDayCheck(index: number) {
   const copyValue: TimeRange[][] = copy(timeList.value)
 
-  if (dayCheckbox.value[index]) {
+  if (dayStates.value[index].checked) {
     copyValue[index] = [[0, 47]]
   } else {
     copyValue[index] = []
@@ -416,6 +387,8 @@ function setShadow(e: MouseEvent) {
     height: Math.abs(height) + 'px'
   }
 }
+// TODO
+const debouncedSetShadow = debounce(setShadow, 16) // 约60fps
 
 function setHoverData(
   evt: MouseEvent,

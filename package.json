@@ -65,6 +65,9 @@
   "license": "ISC",
   "packageManager": "pnpm@10.8.0",
   "dependencies": {
-    "fastest-json-copy": "^1.0.1"
+    "@vue/composition-api": "^1.6.2",
+    "debounce": "^2.2.0",
+    "fastest-json-copy": "^1.0.1",
+    "simple-vue-time-schedule": "link:"
   }
 }
