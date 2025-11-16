@@ -7,5 +7,3 @@ ignoredBuiltDependencies:
 onlyBuiltDependencies:
   - vue-demi
 
-overrides:
-  simple-vue-time-schedule: 'link:'

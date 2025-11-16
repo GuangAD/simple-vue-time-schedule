@@ -1,15 +1,21 @@
 <!-- eslint-disable vue/no-deprecated-v-bind-sync -->
 <template>
   <div id="app">
+    <h1>Vue 2.7</h1>
     <input type="text" v-model="timeRange" @change="handleChange" />
     {{ selected }}
-    <time-schedule :modelValue.sync="selected" show-checkbox :date-list="dateList"
-      :disabled-time-range="disabledTimeRange" @change="handleRangeChange">
+    <time-schedule
+      :modelValue.sync="selected"
+      show-checkbox
+      :date-list="dateList"
+      :disabled-time-range="disabledTimeRange"
+      @change="handleRangeChange"
+    >
     </time-schedule>
   </div>
 </template>
 
-<script lang="ts">
+<script>
 export default {
   name: 'App',
 

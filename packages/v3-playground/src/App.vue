@@ -1,39 +1,22 @@
 <!-- eslint-disable vue/valid-v-model -->
 <template>
   <div id="app">
+    <h1>Vue 3</h1>
     <input type="text" v-model="timeRange" @change="handleChange" />
     {{ selected }}
-    <time-schedule canOverlap v-model="selected" show-checkbox :date-list="dateList"
-      :disabled-time-range="disabledTimeRange" @change="handleRangeChange">
+    <time-schedule
+      canOverlap
+      v-model="selected"
+      show-checkbox
+      :date-list="dateList"
+      :disabled-time-range="disabledTimeRange"
+      @change="handleRangeChange"
+    >
     </time-schedule>
-
-    <!-- <div>
-      <div v-for="(item, index) in list1" :key="index">
-        <input type="text" v-model="list1[index]" /><span>{{ item }}</span>
-      </div>
-    </div>
-    <br />
-    <div>
-      <div>
-        <input type="text" v-model="list2[0]" /><span>{{ list2[0] }}</span>
-      </div>
-      <div>
-        <input type="text" v-model="list2[1]" /><span>{{ list2[1] }}</span>
-      </div>
-      <div>
-        <input type="text" v-model="list2[2]" /><span>{{ list2[2] }}</span>
-      </div>
-    </div>
-    <br />
-    <div>
-      <div v-for="(item, index) in list3" :key="index">
-        <input type="text" v-model="list3[index]" /><span>{{ item }}</span>
-      </div>
-    </div> -->
   </div>
 </template>
 
-<script lang="ts">
+<script>
 export default {
   name: 'App',
 
