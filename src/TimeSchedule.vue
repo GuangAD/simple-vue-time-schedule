@@ -79,9 +79,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, defineProps, defineEmits } from 'vue-demi'
+import { ref, computed, watch, onMounted, onUnmounted, defineProps, defineEmits } from 'vue'
 import { copy } from 'fastest-json-copy'
-import type { CSSProperties, PropType } from 'vue-demi'
+import type { CSSProperties, PropType } from 'vue'
 import {
   dayHalfHour,
   dayHour,
@@ -123,15 +123,14 @@ const disabledTimeRangeList = computed(() => {
 })
 
 const dayStates = computed(() => {
-  return timeList.value.map((dayTimes, index) => {
+  return timeList.value.map((dayTimes) => {
     const len = dayTimes ? dayTimes.length : 0
     if (len === 1 && dayTimes[0][0] === 0 && dayTimes[0][1] === 47) {
       return { checked: true, indeterminate: false }
     } else if (len === 0) {
       return { checked: false, indeterminate: false }
-    } else {
-      return { checked: false, indeterminate: true }
     }
+    return { checked: false, indeterminate: true }
   })
 })
 
@@ -238,15 +237,14 @@ function updateValue(newValue: TimeRange[][], options = { emitError: false }) {
       }
     }
   }
-
+  if (isError && options.emitError) {
+    emit('error', '选择的时间有冲突')
+  }
   if (isEqualValue(newClonedValue, timeList.value)) {
     effectTimeListChange()
   } else {
     timeList.value = newClonedValue
     effectTimeListChange()
-    if (isError && options.emitError) {
-      emit('error', '选择的时间有冲突')
-    }
 
     doEmit()
   }
@@ -387,8 +385,7 @@ function setShadow(e: MouseEvent) {
     height: Math.abs(height) + 'px'
   }
 }
-// TODO
-const debouncedSetShadow = debounce(setShadow, 16) // 约60fps
+const debouncedSetShadow = debounce(setShadow, 8)
 
 function setHoverData(
   evt: MouseEvent,

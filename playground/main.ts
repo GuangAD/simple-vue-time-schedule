@@ -1,4 +1,4 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import { TimeSchedulePlugin } from 'time-schedule'
+import { TimeSchedulePlugin } from '../src/index.ts'
 createApp(App).use(TimeSchedulePlugin).mount('#app')

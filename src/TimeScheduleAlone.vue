@@ -16,8 +16,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps } from 'vue-demi'
-import type { PropType } from 'vue-demi'
+import { computed, defineProps } from 'vue'
+import type { PropType } from 'vue'
 import TimeSchedule from './TimeSchedule.vue'
 const props = defineProps({
   modelValue: {

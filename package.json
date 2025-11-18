@@ -14,36 +14,17 @@
       "require": "./dist/v3/index.cjs.js",
       "style": "./dist/v3/index"
     },
-    "./dist/*": "./dist/*",
-    "./v2": {
-      "import": "./dist/v2/index.es.js",
-      "require": "./dist/v2/index.cjs.js"
-    },
-    "./v2/style": "./dist/v2/style.css",
-    "./v2.7": {
-      "import": "./dist/v2.7/index.es.js",
-      "require": "./dist/v2.7/index.cjs.js"
-    },
-    "./v2.7/style": "./dist/v2.7/index.css",
-    "./v3": {
-      "import": "./dist/v3/index.es.js",
-      "require": "./dist/v3/index.cjs.js"
-    },
     "./v3/style": "./dist/v3/index.css"
   },
   "scripts": {
-    "dev:2": "pnpm --filter components switch2 && pnpm --filter v2-playground dev",
-    "dev:2.7": "pnpm --filter components switch2.7 && pnpm --filter v2.7-playground dev",
-    "dev:3": "pnpm --filter components switch3 && pnpm --filter v3-playground dev",
-    "build:2": "pnpm --filter components switch2 && pnpm --filter v2-playground build",
-    "build:2.7": "pnpm --filter components switch2.7 && pnpm --filter v2.7-playground build",
-    "build:3": "pnpm --filter components switch3 && pnpm --filter v3-playground build-only",
-    "build": "rimraf ./dist && npm run build:2 && npm run build:2.7 && npm run build:3"
+    "dev": "vite dev",
+    "build:2": "vite build"
   },
   "devDependencies": {
     "@prettier/plugin-oxc": "^0.0.4",
     "@tsconfig/node22": "^22.0.2",
     "@types/node": "^22.16.5",
+    "@vitejs/plugin-vue": "^6.0.1",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.6.0",
     "@vue/tsconfig": "^0.7.0",
@@ -58,16 +39,14 @@
     "ts-jest": "^29.4.4",
     "typescript": "~5.8.3",
     "vite": "^7.1.2",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^4.5.4",
+    "vue": "^3.5.0"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.8.0",
+  "license": "MIT",
   "dependencies": {
-    "@vue/composition-api": "^1.6.2",
     "debounce": "^2.2.0",
-    "fastest-json-copy": "^1.0.1",
-    "simple-vue-time-schedule": "link:"
+    "fastest-json-copy": "^1.0.1"
   }
 }
