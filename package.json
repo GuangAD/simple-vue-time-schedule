@@ -10,15 +10,14 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/v3/index.es.js",
-      "require": "./dist/v3/index.cjs.js",
-      "style": "./dist/v3/index"
+      "import": "./dist/simple-vue-time-schedule.es.js",
+      "require": "./dist/simple-vue-time-schedule.cjs.js"
     },
-    "./v3/style": "./dist/v3/index.css"
+    "./style": "./dist/v3/index.css"
   },
   "scripts": {
     "dev": "vite dev",
-    "build:2": "vite build"
+    "build": "vite build"
   },
   "devDependencies": {
     "@prettier/plugin-oxc": "^0.0.4",

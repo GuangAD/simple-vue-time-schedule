@@ -1,13 +1,13 @@
 import { fileURLToPath, URL } from 'node:url'
 import { resolve } from 'node:path'
-import dtsPlugin from 'vite-plugin-dts'
+import vue from '@vitejs/plugin-vue'
+import dts from 'vite-plugin-dts'
 
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue(), dtsPlugin()],
+  plugins: [dts({ rollupTypes: true, tsconfigPath: './tsconfig.app.json' }), vue()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

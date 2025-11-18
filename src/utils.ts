@@ -245,24 +245,18 @@ function isInTimeRange(point: number, range: TimeRange): boolean {
 
 时间复杂度：O(n)，其中 n 是原区间列表的长度
 空间复杂度：O(n)，用于存储结果数组
-对于你的例子 ([[1, 4], [5, 7]], [4, 6])：
+例子 ([[1, 4], [5, 7]], [4, 6])：
 
 区间 [1, 4] 与新区间 [4, 6] 重叠（因为 4 = 4）
 区间 [5, 7] 与新区间 [4, 6] 重叠（因为 5 ≤ 6）
 最终合并为 [1, 7]
-
-函数已经包含了多个测试用例来验证正确性。
  */
 
 function insertInterval(intervals: TimeRange[], newInterval: TimeRange): TimeRange[] {
   // 创建副本以避免修改原数组
   const result: TimeRange[] = []
   const [newStart, newEnd] = getStartAndEnd(newInterval)
-
-  // console.log('🚀 ~ insertInterval ~ newStart:', newStart, newEnd)
-
   let i = 0
-
   // 1. 添加所有结束位置在新区间开始之前的区间（无重叠）
   while (i < intervals.length && getStartAndEnd(intervals[i])[1] < newStart - 1) {
     result.push([...intervals[i]])

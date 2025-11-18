@@ -97,14 +97,16 @@ import type { TimeRange } from './utils.ts'
 import debounce from 'debounce'
 
 const props = defineProps({
+  // 时间范围选择器是否可拖拽
   canDrop: { type: Boolean, default: true },
+  // 时间范围选择器是否可重叠
   canOverlap: { type: Boolean, default: false },
   modelValue: { type: Array as PropType<string[][]>, default: () => [] },
   showFooter: { type: Boolean, default: true },
   showHeader: { type: Boolean, default: true },
-  type: { type: String as PropType<'normal' | 'senior'>, default: 'normal' },
   showCheckbox: { type: Boolean, default: false },
   showDateLabel: { type: Boolean, default: true },
+  // 不可选的时间范围
   disabledTimeRange: { type: Array as PropType<string[][]>, default: () => [] },
   dateList: {
     type: Array as PropType<string[]>,
@@ -114,14 +116,15 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'error', 'change'])
-
+// 选中的时间范围
 const timeList = ref<TimeRange[][]>([])
+// 选中的时间范围字符串数组
 const timePeriodStrArr = ref<string[]>([])
-
+// 不可选的时间范围索引数组
 const disabledTimeRangeList = computed(() => {
   return generateTimeRangeIndexArray(props.disabledTimeRange)
 })
-
+// 当前日期是否全选
 const dayStates = computed(() => {
   return timeList.value.map((dayTimes) => {
     const len = dayTimes ? dayTimes.length : 0
@@ -151,7 +154,7 @@ const dayLabels = computed(() => {
   const days = props.dateList || []
   return days
 })
-
+// 是否有选中的时间范围
 const hasSelectedTime = computed(() => {
   return timeList.value.some((ele) => ele && ele.length >= 1)
 })
@@ -223,16 +226,16 @@ function updateValue(newValue: TimeRange[][], options = { emitError: false }) {
   for (let i = 0; i < newClonedValue.length; i++) {
     if (newClonedValue[i]) {
       const disabledTimeRange = disabledTimeRangeList.value[i]
-      if (disabledTimeRange) {
-        for (const range of disabledTimeRange) {
-          const isOverlap = newClonedValue[i].some((item) => isRangeOverlap(item, range))
-          if (isOverlap) {
-            // oxlint-disable-next-line max-depth
-            if (!props.canOverlap) {
-              newClonedValue[i] = removeInterval(newClonedValue[i], range)
-            }
-            isError = true
+      if (!disabledTimeRange) {
+        continue
+      }
+      for (const range of disabledTimeRange) {
+        const isOverlap = newClonedValue[i].some((item) => isRangeOverlap(item, range))
+        if (isOverlap) {
+          if (!props.canOverlap) {
+            newClonedValue[i] = removeInterval(newClonedValue[i], range)
           }
+          isError = true
         }
       }
     }
@@ -303,7 +306,12 @@ function handleDayCheck(index: number) {
   }
   updateValue(copyValue)
 }
-
+/**
+ * @description 将时间范围数组转换为时间范围字符串
+ * @param timeArr 所有的时间范围数组
+ * @param targetTimePeriodStrArrIndex 目标时间范围字符串数组索引
+ * @returns 时间范围字符串
+ */
 function transformTimeArrToString(timeArr: TimeRange[], targetTimePeriodStrArrIndex: number) {
   if (!timeArr || timeArr.length === 0) {
     timePeriodStrArr.value[targetTimePeriodStrArrIndex] = ''
@@ -527,20 +535,6 @@ onUnmounted(() => {
   min-width: 700px;
 }
 
-.schedule-link {
-  display: block;
-  margin-right: 24px;
-  color: #333;
-}
-
-.schedule .bui-schedule-tooltip {
-  display: inline;
-}
-
-.schedule .bui-schedule-tooltip .bui-popover-panel {
-  padding: 8px 16px;
-}
-
 .schedule table {
   border-left: none;
   border-style: hidden;
@@ -563,66 +557,12 @@ onUnmounted(() => {
 .schedule-header {
   border: 1px solid #ebebeb;
   border-bottom: none;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: justify;
-  -ms-flex-pack: justify;
   justify-content: space-between;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   height: 38px;
   padding: 0 12px;
   font-size: 12px;
-  background-color: transparent;
-}
-
-.schedule-option {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-.schedule-option .schedule-option-selected {
-  color: #338aff;
-}
-
-.schedule-explain {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-.schedule-header-selectable,
-.schedule-header-selected {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  color: #333;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  margin-right: 11px;
-}
-
-.schedule-header-selectable::before,
-.schedule-header-selected::before {
-  content: '';
-  display: block;
-  width: 12px;
-  height: 4px;
-  background-color: #338aff;
-  border-radius: 2px;
-  margin-right: 8px;
-}
-
-.schedule-header-selectable {
-  margin-right: 0;
-}
-
-.schedule-header-selectable::before {
-  border: 1px solid #dadfe3;
   background-color: transparent;
 }
 
@@ -648,7 +588,7 @@ onUnmounted(() => {
 }
 
 .schedule-calendar {
-  -webkit-user-select: none;
+  user-select: none;
   position: relative;
   display: inline-block;
 }
@@ -701,7 +641,6 @@ onUnmounted(() => {
   text-align: center;
   min-width: 11px;
   line-height: 1.8em;
-  -webkit-transition: background 0.2s ease;
   transition: background 0.2s ease;
   color: #333;
   background: 0 0;
@@ -775,16 +714,6 @@ onUnmounted(() => {
   cursor: pointer;
   color: #338aff;
   font-size: 14px;
-}
-
-.schedule-senior .table-wrap {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
-
-.schedule-senior .schedule-header {
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
 }
 
 .schedule-show-checkbox .schedule-label {
