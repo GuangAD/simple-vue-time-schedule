@@ -43,17 +43,6 @@
                 :data-time="time"
                 @mousemove="($event) => (canDrop ? debouncedSetShadow($event) : emptyFunc)"
                 @mousedown="($event) => (canDrop ? setFirstSource(index, time, $event) : emptyFunc())"
-                @mouseenter="
-                  ($event) =>
-                    canDrop
-                      ? setHoverData($event, {
-                          time: time,
-                          dayLabel: dayLabel,
-                          day: index
-                        })
-                      : emptyFunc()
-                "
-                @mouseleave="() => (canDrop ? removeHoverData() : emptyFunc())"
               ></td>
             </tr>
             <!-- 底部信息栏 -->
@@ -332,6 +321,7 @@ function transformTimeArrToString(timeArr: TimeRange[], targetTimePeriodStrArrIn
     .join('、')
   timePeriodStrArr.value[targetTimePeriodStrArrIndex] = resStr
 }
+
 const startTdEl = ref<HTMLElement | null>(null)
 const endTdEl = ref<HTMLElement | null>(null)
 const start_point = ref<{
@@ -339,14 +329,8 @@ const start_point = ref<{
   y: number
 } | null>(null)
 const isAdd = ref(false)
-const hoverDayLabel = ref('')
-const hoverTime = ref('')
-const hoverTimeoutId = ref<number | null>()
-const isPopover = ref(false)
-const popOverCanShow = ref(false)
 const scheduleShow = ref(false)
 const scheduleStyle = ref<CSSProperties>({})
-const hoverTipObj = ref({})
 const scheduleClass = ref({
   'no-transition': false,
   'schedule-rang': true
@@ -394,49 +378,12 @@ function setShadow(e: MouseEvent) {
   }
 }
 const debouncedSetShadow = debounce(setShadow, 8)
-
-function setHoverData(
-  evt: MouseEvent,
-  obj: {
-    dayLabel: string
-    time: number
-    day: number
-  }
-) {
-  hoverTipObj.value = obj
-  popOverCanShow.value = true
-  const hour = Math.floor(obj.time / 2) < 10 ? '0' + Math.floor(obj.time / 2) : Math.floor(obj.time / 2)
-  const tempHoverTime =
-    obj.time % 2
-      ? hour + ':30 - ' + (+hour + 1 < 10 ? '0' + (+hour + 1) : +hour + 1) + ':00'
-      : hour + ':00 - ' + hour + ':30'
-
-  if (hoverTimeoutId.value) {
-    clearTimeout(hoverTimeoutId.value)
-  }
-
-  hoverTimeoutId.value = setTimeout(() => {
-    hoverDayLabel.value = obj.dayLabel
-    hoverTime.value = tempHoverTime
-    isPopover.value = popOverCanShow.value ? true : false
-    if (hoverTimeoutId.value) {
-      clearTimeout(hoverTimeoutId.value)
-    }
-  }, 500)
-}
-
-function removeHoverData() {
-  popOverCanShow.value = false
-  hoverDayLabel.value = ''
-  hoverTime.value = ''
-  isPopover.value = false
-}
-
+// 鼠标按下记录按下的dom
 function setFirstSource(week: number, time: number, e: MouseEvent) {
   const dayTimes = timeList.value[week]
   isAdd.value = dayTimes ? !dayTimes.some((range) => isInTimeRange(time, range)) : true
 
-  if (e.which !== 1) {
+  if (e.button !== 1) {
     return
   }
   startTdEl.value = e.target as HTMLElement
@@ -566,10 +513,6 @@ onUnmounted(() => {
   background-color: transparent;
 }
 
-.schedule-no-selected-time {
-  margin: 0;
-}
-
 .schedule-rang {
   background: #338aff;
   width: 0;
@@ -579,7 +522,6 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   pointer-events: none;
-  -webkit-transition: all 1ms ease;
   transition: all 1ms ease;
 }
 
@@ -664,23 +606,6 @@ onUnmounted(() => {
   padding: 12px 12px 0 19px;
 }
 
-.schedule-calendar-table .schedule-table-tip .clearfix {
-  height: 22px;
-  line-height: 22px;
-  margin: 8px 0;
-  text-align: left;
-}
-
-.schedule-calendar-table .schedule-table-tip .clearfix .schedule-no-selected-time {
-  color: #666;
-  text-align: center;
-}
-
-.schedule-calendar-table .schedule-table-tip .pull-left {
-  font-size: 14px;
-  color: #333;
-}
-
 .schedule-tip-text {
   color: #333;
   margin-right: 8px;
@@ -708,12 +633,6 @@ onUnmounted(() => {
   display: -ms-flexbox;
   display: flex;
   color: #666;
-}
-
-.schedule a {
-  cursor: pointer;
-  color: #338aff;
-  font-size: 14px;
 }
 
 .schedule-show-checkbox .schedule-label {
