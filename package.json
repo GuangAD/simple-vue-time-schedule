@@ -2,8 +2,8 @@
   "name": "simple-vue-time-schedule",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
+  "main": "dist/simple-vue-time-schedule.cjs.js",
+  "module": "dist/simple-vue-time-schedule.es.js",
   "type": "module",
   "files": [
     "dist"
@@ -13,11 +13,14 @@
       "import": "./dist/simple-vue-time-schedule.es.js",
       "require": "./dist/simple-vue-time-schedule.cjs.js"
     },
-    "./style": "./dist/v3/index.css"
+    "./style": "./dist/simple-vue-time-schedule.css"
   },
   "scripts": {
     "dev": "vite dev",
     "build": "vite build"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
   },
   "devDependencies": {
     "@prettier/plugin-oxc": "^0.0.4",

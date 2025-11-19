@@ -1,16 +1,16 @@
 <template>
   <div :class="baseClass">
-    <div ref="calendar" class="schedule-calendar">
+    <div class="schedule-calendar">
       <!-- 拖拽选择时的遮罩层，显示选择区域 -->
-      <div v-if="scheduleShow" ref="schedule" :class="scheduleClass" :style="scheduleStyle"></div>
+      <div v-if="scheduleShow" :class="scheduleClass" :style="scheduleStyle"></div>
       <div class="table-wrap">
         <table class="schedule-calendar-table">
           <thead>
             <tr v-if="showHeader" class="schedule-calendar-time-all">
               <!-- 空白占位列，用于显示周几标签 -->
               <th v-if="showDateLabel" class="schedule-week-td" :style="{ width: labelWidth + 'px' }" rowspan="2"></th>
-              <th class="schedule-calendar-time" colspan="24">00:00 - 12:00</th>
-              <th class="schedule-calendar-time" colspan="24">12:00 - 24:00</th>
+              <th class="schedule-calendar-time" colspan="24">{{ mergedTextConfig.am }}</th>
+              <th class="schedule-calendar-time" colspan="24">{{ mergedTextConfig.pm }}</th>
             </tr>
             <tr class="schedule-calendar-time-item">
               <td v-for="(item, index) in dayHour" :key="index" colspan="2">
@@ -19,7 +19,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(dayLabel, index) in dayLabels" :key="index">
+            <tr v-for="(dayLabel, index) in props.dateList" :key="index">
               <td v-if="showDateLabel">
                 <div class="schedule-label">
                   <!-- 全选复选框 -->
@@ -36,13 +36,12 @@
               <td
                 v-for="(time, i) in dayHalfHour"
                 :key="i"
-                ref="calendarAtomTime"
                 class="schedule-calendar-atom-time"
                 :class="getScheduleCalendarClass(index, time)"
                 :data-day="index"
                 :data-time="time"
-                @mousemove="($event) => (canDrop ? debouncedSetShadow($event) : emptyFunc)"
-                @mousedown="($event) => (canDrop ? setFirstSource(index, time, $event) : emptyFunc())"
+                @mousemove="($event) => canDrop && rafSetShadow($event)"
+                @mousedown="($event) => canDrop && setFirstSource(index, time, $event)"
               ></td>
             </tr>
             <!-- 底部信息栏 -->
@@ -52,7 +51,7 @@
                   <div v-for="(_, index) in timeList" :key="index">
                     <p v-if="timePeriodStrArr[index]">
                       <span class="schedule-tip-text">
-                        {{ dayLabels[index] }}
+                        {{ props.dateList[index] }}
                       </span>
                       <span>{{ timePeriodStrArr[index] }}</span>
                     </p>
@@ -83,7 +82,12 @@ import {
 } from './utils.ts'
 
 import type { TimeRange } from './utils.ts'
-import debounce from 'debounce'
+
+interface TextConfig {
+  am?: string
+  pm?: string
+  error?: string
+}
 
 const props = defineProps({
   // 时间范围选择器是否可拖拽
@@ -101,10 +105,23 @@ const props = defineProps({
     type: Array as PropType<string[]>,
     default: () => ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
   },
-  labelWidth: { type: Number, default: 75 }
+  labelWidth: { type: Number, default: 75 },
+  textConfig: {
+    type: Object as PropType<TextConfig>,
+    default: () => ({})
+  }
 })
 
 const emit = defineEmits(['update:modelValue', 'error', 'change'])
+
+const defaultTextConfig = {
+  am: '00:00 - 12:00',
+  pm: '12:00 - 24:00',
+  error: '选择的时间有冲突'
+}
+
+const mergedTextConfig = computed(() => ({ ...defaultTextConfig, ...props.textConfig }))
+
 // 选中的时间范围
 const timeList = ref<TimeRange[][]>([])
 // 选中的时间范围字符串数组
@@ -139,17 +156,13 @@ watch(
   }
 )
 
-const dayLabels = computed(() => {
-  const days = props.dateList || []
-  return days
-})
 // 是否有选中的时间范围
 const hasSelectedTime = computed(() => {
   return timeList.value.some((ele) => ele && ele.length >= 1)
 })
 
 const baseClass = computed(() => {
-  const classArr = ['schedule', 'schedule-']
+  const classArr = ['schedule']
   if (props.showCheckbox) {
     classArr.push('schedule-show-checkbox')
   }
@@ -164,8 +177,6 @@ watch(
   },
   { immediate: true, deep: true }
 )
-
-function emptyFunc() {}
 
 function isDayTimeDisabled(day: number, time: number) {
   return disabledTimeRangeList.value[day]?.some((range) => isInTimeRange(time, range)) || false
@@ -230,7 +241,7 @@ function updateValue(newValue: TimeRange[][], options = { emitError: false }) {
     }
   }
   if (isError && options.emitError) {
-    emit('error', '选择的时间有冲突')
+    emit('error', mergedTextConfig.value.error)
   }
   if (isEqualValue(newClonedValue, timeList.value)) {
     effectTimeListChange()
@@ -271,7 +282,7 @@ function generateTimeRangeIndexArray(list: string[][]) {
 }
 
 function convertToTimeRange() {
-  return timePeriodStrArr.value.map((item) => item.split('、'))
+  return timePeriodStrArr.value.map((item) => item.split('、').filter((item) => !!item))
 }
 
 function doEmit() {
@@ -323,6 +334,7 @@ function transformTimeArrToString(timeArr: TimeRange[], targetTimePeriodStrArrIn
 }
 
 const startTdEl = ref<HTMLElement | null>(null)
+let startTdElRect: DOMRect | null = null
 const endTdEl = ref<HTMLElement | null>(null)
 const start_point = ref<{
   x: number
@@ -338,10 +350,6 @@ const scheduleClass = ref({
 
 const curTdEl = ref<HTMLElement | null>(null)
 
-const calendar = ref(null)
-const schedule = ref(null)
-const calendarAtomTime = ref<HTMLElement[]>([])
-
 function getClientPosition(ele: HTMLElement, outer = false) {
   const clientRect = ele.getBoundingClientRect()
   return {
@@ -352,22 +360,23 @@ function getClientPosition(ele: HTMLElement, outer = false) {
 
 function setShadow(e: MouseEvent) {
   curTdEl.value = e.target as HTMLElement
-  if (!startTdEl.value || !start_point.value) {
+  if (!startTdEl.value || !start_point.value || !startTdElRect) {
     return
   }
 
   const curPos = getClientPosition(curTdEl.value, true)
-  const startTdElRect = startTdEl.value.getBoundingClientRect()
   const currentTdElRect = curTdEl.value.getBoundingClientRect()
 
   const distanceX = curPos.x - start_point.value.x
   const distanceY = curPos.y - start_point.value.y
 
-  const left = distanceX > 0 ? startTdElRect.left : currentTdElRect.left
-  const top = distanceY > 0 ? startTdElRect.top : currentTdElRect.top
+  const left = distanceX > 0 ? startTdElRect!.left : currentTdElRect.left
+  const top = distanceY > 0 ? startTdElRect!.top : currentTdElRect.top
 
-  const width = distanceX > 0 ? currentTdElRect.right - startTdElRect.left : currentTdElRect.left - startTdElRect.right
-  const height = distanceY > 0 ? currentTdElRect.bottom - startTdElRect.top : currentTdElRect.top - startTdElRect.bottom
+  const width =
+    distanceX > 0 ? currentTdElRect.right - startTdElRect!.left : currentTdElRect.left - startTdElRect!.right
+  const height =
+    distanceY > 0 ? currentTdElRect.bottom - startTdElRect!.top : currentTdElRect.top - startTdElRect!.bottom
 
   scheduleStyle.value = {
     opacity: 0.6,
@@ -377,16 +386,31 @@ function setShadow(e: MouseEvent) {
     height: Math.abs(height) + 'px'
   }
 }
-const debouncedSetShadow = debounce(setShadow, 8)
+let shadowRaf = 0
+let lastMouseEvent: MouseEvent | null = null
+function rafSetShadow(e: MouseEvent) {
+  lastMouseEvent = e
+  if (shadowRaf) {
+    return
+  }
+  shadowRaf = requestAnimationFrame(() => {
+    if (lastMouseEvent) {
+      setShadow(lastMouseEvent)
+    }
+    shadowRaf = 0
+    lastMouseEvent = null
+  })
+}
 // 鼠标按下记录按下的dom
 function setFirstSource(week: number, time: number, e: MouseEvent) {
   const dayTimes = timeList.value[week]
   isAdd.value = dayTimes ? !dayTimes.some((range) => isInTimeRange(time, range)) : true
 
-  if (e.button !== 1) {
+  if (e.button !== 0) {
     return
   }
   startTdEl.value = e.target as HTMLElement
+  startTdElRect = startTdEl.value.getBoundingClientRect()
   start_point.value = getClientPosition(e.target as HTMLElement)
   scheduleShow.value = true
   scheduleStyle.value = {
@@ -401,7 +425,7 @@ function setFirstSource(week: number, time: number, e: MouseEvent) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function onResetAllClick() {
-  const emptyValue = Array.from({ length: dayLabels.value.length }, () => [])
+  const emptyValue = Array.from({ length: props.dateList.length }, () => [])
   updateValue(emptyValue)
 }
 
@@ -412,6 +436,7 @@ function scheduleEnd() {
     highlightScheduleArea(startTdEl.value, endTdEl.value)
     start_point.value = null
     startTdEl.value = null
+    startTdElRect = null
     curTdEl.value = null
   }
 }
@@ -468,17 +493,25 @@ function updateSelectedValue({
 onMounted(() => {
   if (props.canDrop) {
     document.addEventListener('mouseup', scheduleEnd)
-    document.addEventListener('mousewheel', scheduleEnd)
+    document.addEventListener('wheel', scheduleEnd, { passive: true })
   }
 })
 
 onUnmounted(() => {
   document.removeEventListener('mouseup', scheduleEnd)
-  document.removeEventListener('mousewheel', scheduleEnd)
+  document.removeEventListener('wheel', scheduleEnd)
 })
 </script>
 <style scoped>
 .schedule {
+  --schedule-primary-color: #338aff;
+  --schedule-error-color: #f70909;
+  --schedule-disabled-color: #ddd;
+  --schedule-hover-bg: #f0f0f0;
+  --schedule-border-color: #ebebeb;
+  --schedule-text-color: #333;
+  --schedule-subtext-color: #666;
+
   min-width: 700px;
 }
 
@@ -493,7 +526,7 @@ onUnmounted(() => {
   margin: 0 auto;
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid #ebebeb;
+  border: 1px solid var(--schedule-border-color);
 }
 
 .schedule td,
@@ -502,7 +535,7 @@ onUnmounted(() => {
 }
 
 .schedule-header {
-  border: 1px solid #ebebeb;
+  border: 1px solid var(--schedule-border-color);
   border-bottom: none;
   display: flex;
   justify-content: space-between;
@@ -514,7 +547,7 @@ onUnmounted(() => {
 }
 
 .schedule-rang {
-  background: #338aff;
+  background: var(--schedule-primary-color);
   width: 0;
   height: 0;
   position: fixed;
@@ -548,22 +581,22 @@ onUnmounted(() => {
 }
 
 .schedule-calendar-atom-time:hover {
-  background: #f0f0f0;
+  background: var(--schedule-hover-bg);
 }
 
 .schedule-calendar .schedule-calendar-disabled {
-  background: #ddd;
+  background: var(--schedule-disabled-color);
   cursor: not-allowed;
 }
 
 .schedule-calendar .schedule-calendar-selected,
 .schedule-calendar .schedule-calendar-selected:hover {
-  background: #338aff;
+  background: var(--schedule-primary-color);
 }
 
 .schedule-calendar .schedule-calendar-overlap,
 .schedule-calendar .schedule-calendar-overlap:hover {
-  background: #f70909;
+  background: var(--schedule-error-color);
 }
 
 .schedule-calendar-table {
@@ -576,15 +609,15 @@ onUnmounted(() => {
   border-left: none;
   border-top: none;
   border-bottom: 1px solid;
-  border-bottom-color: #ebebeb;
+  border-bottom-color: var(--schedule-border-color);
   border-right: 1px solid;
-  border-right-color: #ebebeb;
+  border-right-color: var(--schedule-border-color);
   font-size: 14px;
   text-align: center;
   min-width: 11px;
   line-height: 1.8em;
   transition: background 0.2s ease;
-  color: #333;
+  color: var(--schedule-text-color);
   background: 0 0;
 }
 
@@ -607,7 +640,7 @@ onUnmounted(() => {
 }
 
 .schedule-tip-text {
-  color: #333;
+  color: var(--schedule-text-color);
   margin-right: 8px;
 }
 
@@ -629,16 +662,12 @@ onUnmounted(() => {
   margin: 0 0 8px;
   font-size: 14px;
   line-height: 22px;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  color: #666;
+  color: var(--schedule-subtext-color);
 }
 
 .schedule-show-checkbox .schedule-label {
   text-align: left;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
 }
 
@@ -648,8 +677,6 @@ onUnmounted(() => {
 
 .schedule-show-checkbox .schedule-label-content {
   padding-left: 5px;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 </style>
