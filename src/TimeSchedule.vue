@@ -1,5 +1,5 @@
 <template>
-  <div :class="baseClass">
+  <div :class="baseClass" :style="cssVars">
     <div class="schedule-calendar">
       <!-- 拖拽选择时的遮罩层，显示选择区域 -->
       <div v-if="scheduleShow" :class="scheduleClass" :style="scheduleStyle"></div>
@@ -67,9 +67,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, defineProps, defineEmits } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, defineProps, defineEmits, inject } from 'vue'
 import { copy } from 'fastest-json-copy'
-import type { CSSProperties, PropType } from 'vue'
+import type { PropType } from 'vue'
 import {
   dayHalfHour,
   dayHour,
@@ -78,10 +78,12 @@ import {
   insertInterval,
   removeInterval,
   isInTimeRange,
-  isRangeOverlap
+  isRangeOverlap,
+  THEME_KEY
 } from './utils.ts'
+import { useDragSelect } from './composables/useDragSelect.ts'
 
-import type { TimeRange } from './utils.ts'
+import type { TimeRange, ThemeConfig } from './utils.ts'
 
 interface TextConfig {
   am?: string
@@ -109,6 +111,10 @@ const props = defineProps({
   textConfig: {
     type: Object as PropType<TextConfig>,
     default: () => ({})
+  },
+  theme: {
+    type: Object as PropType<ThemeConfig>,
+    default: () => ({})
   }
 })
 
@@ -121,6 +127,33 @@ const defaultTextConfig = {
 }
 
 const mergedTextConfig = computed(() => ({ ...defaultTextConfig, ...props.textConfig }))
+
+const globalTheme = inject<ThemeConfig>(THEME_KEY, {})
+const defaultTheme: Required<ThemeConfig> = {
+  primaryColor: '#338aff',
+  errorColor: '#f70909',
+  disabledColor: '#ddd',
+  hoverBg: '#f0f0f0',
+  borderColor: '#ebebeb',
+  textColor: '#333',
+  subtextColor: '#666'
+}
+
+const mergedTheme = computed(() => ({
+  ...defaultTheme,
+  ...globalTheme,
+  ...props.theme
+}))
+
+const cssVars = computed(() => ({
+  '--schedule-primary-color': mergedTheme.value.primaryColor,
+  '--schedule-error-color': mergedTheme.value.errorColor,
+  '--schedule-disabled-color': mergedTheme.value.disabledColor,
+  '--schedule-hover-bg': mergedTheme.value.hoverBg,
+  '--schedule-border-color': mergedTheme.value.borderColor,
+  '--schedule-text-color': mergedTheme.value.textColor,
+  '--schedule-subtext-color': mergedTheme.value.subtextColor
+}))
 
 // 选中的时间范围
 const timeList = ref<TimeRange[][]>([])
@@ -218,8 +251,8 @@ function isEqualValue(arr1: TimeRange[][], arr2: TimeRange[][]) {
   return true
 }
 
-function updateValue(newValue: TimeRange[][], options = { emitError: false }) {
-  const newClonedValue: TimeRange[][] = copy(newValue)
+function updateValue(newValue: TimeRange[][], options = { emitError: false, skipCopy: false }) {
+  const newClonedValue: TimeRange[][] = options.skipCopy ? newValue : copy(newValue)
 
   let isError = false
 
@@ -333,162 +366,35 @@ function transformTimeArrToString(timeArr: TimeRange[], targetTimePeriodStrArrIn
   timePeriodStrArr.value[targetTimePeriodStrArrIndex] = resStr
 }
 
-const startTdEl = ref<HTMLElement | null>(null)
-let startTdElRect: DOMRect | null = null
-const endTdEl = ref<HTMLElement | null>(null)
-const start_point = ref<{
-  x: number
-  y: number
-} | null>(null)
-const isAdd = ref(false)
-const scheduleShow = ref(false)
-const scheduleStyle = ref<CSSProperties>({})
-const scheduleClass = ref({
-  'no-transition': false,
-  'schedule-rang': true
-})
-
-const curTdEl = ref<HTMLElement | null>(null)
-
-function getClientPosition(ele: HTMLElement, outer = false) {
-  const clientRect = ele.getBoundingClientRect()
-  return {
-    x: clientRect.left + (outer ? clientRect.width : 0),
-    y: clientRect.top + (outer ? clientRect.height : 0)
-  }
-}
-
-function setShadow(e: MouseEvent) {
-  curTdEl.value = e.target as HTMLElement
-  if (!startTdEl.value || !start_point.value || !startTdElRect) {
-    return
-  }
-
-  const curPos = getClientPosition(curTdEl.value, true)
-  const currentTdElRect = curTdEl.value.getBoundingClientRect()
-
-  const distanceX = curPos.x - start_point.value.x
-  const distanceY = curPos.y - start_point.value.y
-
-  const left = distanceX > 0 ? startTdElRect!.left : currentTdElRect.left
-  const top = distanceY > 0 ? startTdElRect!.top : currentTdElRect.top
-
-  const width =
-    distanceX > 0 ? currentTdElRect.right - startTdElRect!.left : currentTdElRect.left - startTdElRect!.right
-  const height =
-    distanceY > 0 ? currentTdElRect.bottom - startTdElRect!.top : currentTdElRect.top - startTdElRect!.bottom
-
-  scheduleStyle.value = {
-    opacity: 0.6,
-    top: top + 'px',
-    left: left + 'px',
-    width: Math.abs(width) + 'px',
-    height: Math.abs(height) + 'px'
-  }
-}
-let shadowRaf = 0
-let lastMouseEvent: MouseEvent | null = null
-function rafSetShadow(e: MouseEvent) {
-  lastMouseEvent = e
-  if (shadowRaf) {
-    return
-  }
-  shadowRaf = requestAnimationFrame(() => {
-    if (lastMouseEvent) {
-      setShadow(lastMouseEvent)
-    }
-    shadowRaf = 0
-    lastMouseEvent = null
-  })
-}
-// 鼠标按下记录按下的dom
-function setFirstSource(week: number, time: number, e: MouseEvent) {
-  const dayTimes = timeList.value[week]
-  isAdd.value = dayTimes ? !dayTimes.some((range) => isInTimeRange(time, range)) : true
-
-  if (e.button !== 0) {
-    return
-  }
-  startTdEl.value = e.target as HTMLElement
-  startTdElRect = startTdEl.value.getBoundingClientRect()
-  start_point.value = getClientPosition(e.target as HTMLElement)
-  scheduleShow.value = true
-  scheduleStyle.value = {
-    left: start_point.value.x + 'px',
-    top: start_point.value.y + 'px',
-    width: 0,
-    height: 0,
-    opacity: 0.6
-  }
-  scheduleClass.value['no-transition'] = true
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function onResetAllClick() {
-  const emptyValue = Array.from({ length: props.dateList.length }, () => [])
-  updateValue(emptyValue)
-}
-
-function scheduleEnd() {
-  if (start_point.value) {
-    endTdEl.value = curTdEl.value
-    scheduleClass.value['no-transition'] = false
-    highlightScheduleArea(startTdEl.value, endTdEl.value)
-    start_point.value = null
-    startTdEl.value = null
-    startTdElRect = null
-    curTdEl.value = null
-  }
-}
-
-function highlightScheduleArea(startEl: HTMLElement | null, endEl: HTMLElement | null) {
-  if (!startEl || !endEl) {
-    scheduleStyle.value.opacity = 0
-    scheduleShow.value = false
-    return
-  }
-  const startDay = parseInt(startEl.getAttribute('data-day') ?? '0', 10)
-  const startTime = parseInt(startEl.getAttribute('data-time') ?? '0', 10)
-  const endDay = parseInt(endEl.getAttribute('data-day') ?? '0', 10)
-  const endTime = parseInt(endEl.getAttribute('data-time') ?? '0', 10)
-
-  const sDay = Math.min(startDay, endDay)
-  const eDay = Math.max(startDay, endDay)
-  const sTime = Math.min(startTime, endTime)
-  const eTime = Math.max(startTime, endTime)
-
-  scheduleStyle.value.opacity = 0
-  scheduleShow.value = false
-  updateSelectedValue({
-    startTime: sTime,
-    startDay: sDay,
-    endTime: eTime,
-    endDay: eDay
-  })
-}
-
 function updateSelectedValue({
   startTime,
   startDay,
   endTime,
-  endDay
+  endDay,
+  isAdd
 }: {
   startTime: number
   startDay: number
   endTime: number
   endDay: number
+  isAdd: boolean
 }) {
   const copyValue: TimeRange[][] = copy(timeList.value)
   for (let i = startDay; i <= endDay; i++) {
     const changeRange: TimeRange = [startTime, endTime]
-    if (isAdd.value) {
+    if (isAdd) {
       copyValue[i] = insertInterval(copyValue[i], changeRange)
     } else {
       copyValue[i] = removeInterval(copyValue[i], changeRange)
     }
   }
-  updateValue(copyValue)
+  updateValue(copyValue, { skipCopy: true })
 }
+
+const { scheduleShow, scheduleStyle, scheduleClass, setFirstSource, rafSetShadow, scheduleEnd } = useDragSelect(
+  timeList,
+  updateSelectedValue
+)
 
 onMounted(() => {
   if (props.canDrop) {

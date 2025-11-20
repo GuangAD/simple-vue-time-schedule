@@ -364,3 +364,15 @@ export {
 }
 
 export type { TimeRange }
+
+export interface ThemeConfig {
+  primaryColor?: string
+  errorColor?: string
+  disabledColor?: string
+  hoverBg?: string
+  borderColor?: string
+  textColor?: string
+  subtextColor?: string
+}
+
+export const THEME_KEY = Symbol('TimeScheduleTheme')

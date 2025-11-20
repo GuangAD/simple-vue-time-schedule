@@ -12,6 +12,7 @@
     :show-footer="false"
     :show-header="false"
     :disabled-time-range="_disabledTimeRange"
+    :theme="theme"
   />
 </template>
 
@@ -19,6 +20,8 @@
 import { computed, defineProps } from 'vue'
 import type { PropType } from 'vue'
 import TimeSchedule from './TimeSchedule.vue'
+import type { ThemeConfig } from './utils.ts'
+
 const props = defineProps({
   modelValue: {
     type: Array as PropType<string[]>,
@@ -32,6 +35,10 @@ const props = defineProps({
   disabledTimeRange: {
     type: Array as PropType<string[]>,
     default: () => []
+  },
+  theme: {
+    type: Object as PropType<ThemeConfig>,
+    default: () => ({})
   }
 })
 
