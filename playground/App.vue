@@ -3,7 +3,9 @@
   <div id="app">
     <h1>Vue 3</h1>
     <input type="text" v-model="timeRange" @change="handleChange" />
-    {{ selected }}
+    <div>
+      {{ selected }}
+    </div>
     <time-schedule
       canOverlap
       v-model="selected"

@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, defineProps, defineEmits, inject } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, inject } from 'vue'
 import { copy } from 'fastest-json-copy'
 import type { PropType } from 'vue'
 import {
@@ -206,7 +206,7 @@ watch(
   () => props.modelValue,
   (newVal) => {
     const result = generateTimeRangeIndexArray(newVal)
-    updateValue(result, { emitError: true })
+    updateValue(result, { emitError: true, skipCopy: false })
   },
   { immediate: true, deep: true }
 )
@@ -388,7 +388,7 @@ function updateSelectedValue({
       copyValue[i] = removeInterval(copyValue[i], changeRange)
     }
   }
-  updateValue(copyValue, { skipCopy: true })
+  updateValue(copyValue, { skipCopy: true, emitError: false })
 }
 
 const { scheduleShow, scheduleStyle, scheduleClass, setFirstSource, rafSetShadow, scheduleEnd } = useDragSelect(
