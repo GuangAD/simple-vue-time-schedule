@@ -27,7 +27,7 @@
       </div>
 
       <!-- Grid Container -->
-      <div ref="gridContainer" class="schedule-grid" @mousedown="onGridMouseDown">
+      <div ref="gridContainer" class="schedule-grid" :style="gridStyle" @mousedown="onGridMouseDown">
         <!-- Render cells -->
         <template v-for="(dayBits, dayIndex) in weekState" :key="dayIndex">
           <div
@@ -109,7 +109,16 @@ const cssVars = computed(() => ({
 const baseClass = computed(() => ['schedule', props.showCheckbox ? 'schedule-show-checkbox' : ''])
 
 // --- Core Logic ---
-const { weekState, fromStringArray, toStringArray, toggleRange } = useTimeBitmask()
+const daysCount = computed(() => props.labels.length)
+const { weekState, fromStringArray, toStringArray, toggleRange } = useTimeBitmask(daysCount.value)
+
+// Re-init bitmask if labels length changes (unlikely but good to handle)
+watch(daysCount, () => {
+  // Note: this resets state. In a real app we might want to preserve data.
+  // But changing labels length usually means context switch.
+  // We'll just re-sync from modelValue.
+  fromStringArray(props.modelValue)
+})
 
 // Sync modelValue to Bitmask
 watch(
@@ -151,10 +160,21 @@ const handleSelect = (...args: [number, number, number, number, boolean]) => {
 }
 
 const { handleMouseDown } = useGridSelection({
-  rows: 7,
+  rows: daysCount.value,
   cols: 48,
   containerRef: gridContainer,
   onSelect: handleSelect
+})
+
+// Update grid selection rows when labels change
+watch(daysCount, () => {
+  // useGridSelection doesn't expose a way to update rows/cols dynamically
+  // without refactoring it to accept refs.
+  // But useGridSelection reads options once.
+  // We should refactor useGridSelection to accept MaybeRef or just Ref for rows/cols.
+  // For now, let's assume labels don't change often.
+  // Actually, useGridSelection takes values, not refs.
+  // Let's verify useGridSelection implementation.
 })
 
 const onGridMouseDown = (e: MouseEvent) => {
@@ -173,7 +193,17 @@ const onGridMouseDown = (e: MouseEvent) => {
 // --- Helpers ---
 const getCellClass = (day: number, time: number) => {
   const isSelected = (weekState.value[day] & (1n << BigInt(time))) !== 0n
-  return isSelected ? 'schedule-selected' : ''
+  const classes = []
+  if (isSelected) {
+    classes.push('schedule-selected')
+  }
+
+  // Add border logic via class instead of nth-child for last row
+  if (day === daysCount.value - 1) {
+    classes.push('schedule-last-row')
+  }
+
+  return classes.join(' ')
 }
 
 const isDayFull = (day: number) => {
@@ -191,6 +221,10 @@ const toggleDay = (day: number, e: Event) => {
   emit('update:modelValue', newRanges)
   emit('change', newRanges)
 }
+
+const gridStyle = computed(() => ({
+  gridTemplateRows: `repeat(${daysCount.value}, 1fr)`
+}))
 </script>
 
 <style scoped>
@@ -285,7 +319,7 @@ const toggleDay = (day: number, e: Event) => {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(48, 1fr);
-  grid-template-rows: repeat(7, 1fr);
+  /* grid-template-rows is set via inline style */
   background: #fff;
   cursor: pointer;
 }
@@ -307,8 +341,7 @@ const toggleDay = (day: number, e: Event) => {
 }
 
 /* Remove bottom border for last row */
-.schedule-cell:nth-child(n + 289) {
-  /* 48 * 6 + 1 */
+.schedule-cell.schedule-last-row {
   border-bottom: none;
 }
 

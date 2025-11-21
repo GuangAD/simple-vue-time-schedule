@@ -1,17 +1,15 @@
-<!-- eslint-disable vue/no-deprecated-v-bind-sync -->
 <template>
   <time-schedule
     :model-value="selected"
     @update:model-value="handleChange"
     @error="handleError"
     :show-checkbox="false"
-    :can-drop="canDrop"
-    :can-overlap="canOverlap"
+    :readonly="readonly"
     :show-date-label="false"
-    :date-list="dateList"
+    :labels="labels"
     :show-footer="false"
     :show-header="false"
-    :disabled-time-range="_disabledTimeRange"
+    :disabled="disabled"
     :theme="theme"
   />
 </template>
@@ -20,19 +18,18 @@
 import { computed } from 'vue'
 import type { PropType } from 'vue'
 import TimeSchedule from './TimeSchedule.vue'
-import type { ThemeConfig } from './utils.ts'
+import type { ThemeConfig } from './utils'
 
 const props = defineProps({
   modelValue: {
     type: Array as PropType<string[]>,
     default: () => []
   },
-  canDrop: {
+  readonly: {
     type: Boolean,
-    default: true
+    default: false
   },
-  canOverlap: { type: Boolean, default: false },
-  disabledTimeRange: {
+  disabled: {
     type: Array as PropType<string[]>,
     default: () => []
   },
@@ -45,13 +42,13 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'change', 'error'])
 
 const selected = computed(() => [props.modelValue])
-const _disabledTimeRange = computed(() => [props.disabledTimeRange])
+const disabled = computed(() => [props.disabled])
 
-const dateList = ['时间']
+const labels = ['时间']
 
-function handleChange(nelValue: string[][]) {
-  emit('update:modelValue', nelValue[0])
-  emit('change', nelValue[0])
+function handleChange(newVal: string[][]) {
+  emit('update:modelValue', newVal[0])
+  emit('change', newVal[0])
 }
 
 function handleError(err: string) {

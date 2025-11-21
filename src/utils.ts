@@ -1,6 +1,4 @@
 // oxlint-disable no-console
-// 定义一天的半小时时间点数组 (0-47，共 48 个半小时)
-const dayHalfHour = Array.from({ length: 48 }, (_, i) => i)
 
 // 定义一小时时间点数组 (0-23)
 const dayHour = Array.from({ length: 24 }, (_, i) => i)
@@ -30,12 +28,12 @@ function getClockString(id: number, type: 'start' | 'end'): string {
   let minStr = ''
 
   if (type === 'start') {
-    minStr = min === 1 ? ':30' : ':00'
+    minStr = min === 1 ? '30' : '00'
   } else {
-    minStr = min === 0 ? ':30' : ':00'
+    minStr = min === 0 ? '30' : '00'
   }
 
-  return `${hourStr}${minStr}`
+  return `${hourStr}:${minStr}`
 }
 
 /**
@@ -93,8 +91,22 @@ function parseRangeToBitmask(rangeStr: string): bigint {
     return 0n
   }
 
-  const length = BigInt(end - start + 1)
-  return ((1n << length) - 1n) << BigInt(start)
+  // 计算需要设置的位长度。例如，如果 start=4, end=10，则 length=7 (4到10位都需要设置)
+  const length = BigInt(end - start + 1) // length = 10 - 4 + 1 = 7n
+
+  // 步骤 1: 创建一个长度为 `length` 的全 1 比特序列。
+  // `1n << length` 会生成一个在 `length` 位置为 1，其余为 0 的 BigInt。
+  // 例如，如果 length = 7，`1n << 7n` 得到 `0b10000000n` (即 128n)。
+  // 减去 `1n` 后，`0b10000000n - 1n` 得到 `0b01111111n` (即 127n)。
+  // 这是一个从第 0 位到第 `length - 1` 位都是 1 的序列。
+  const allOnesMask = (1n << length) - 1n // allOnesMask = (1n << 7n) - 1n = 0b01111111n
+
+  // 步骤 2: 将这个全 1 序列左移 `start` 位。
+  // 这会将 `allOnesMask` 中的 1 移动到从 `start` 位置开始的连续 `length` 个位置。
+  // 例如，如果 `allOnesMask` 是 `0b01111111n` (length=7) 且 `start` 是 4，
+  // 那么 `0b01111111n << 4n` 得到 `0b011111110000n`。
+  // 最终结果是一个 BigInt，其中从 `start` 位（第4位）到 `end` 位（第10位）都是 1，其余位是 0。
+  return allOnesMask << BigInt(start) // 0b01111111n << 4n = 0b011111110000n
 }
 
 /**
@@ -138,4 +150,4 @@ export interface ThemeConfig {
 
 export const THEME_KEY = Symbol('TimeScheduleTheme')
 
-export { dayHalfHour, dayHour, getClockString, getIndexFromClockString, parseRangeToBitmask, formatBitmaskToRanges }
+export { dayHour, getClockString, getIndexFromClockString, parseRangeToBitmask, formatBitmaskToRanges }
