@@ -138,8 +138,29 @@ watch(
   () => props.disabled,
   (newVal) => {
     fromDisabledStringArray(newVal)
+    // If canOverlapDisabled is true, re-apply mask because disabled areas might have changed to cover selected areas
+    if (props.canOverlapDisabled) {
+      for (let d = 0; d < daysCount.value; d++) {
+        weekState.value[d] &= ~disabledState.value[d]
+      }
+    }
   },
   { immediate: true, deep: true }
+)
+
+// Watch canOverlapDisabled to clean up existing overlaps if switched to true
+watch(
+  () => props.canOverlapDisabled,
+  (val) => {
+    if (val) {
+      for (let d = 0; d < daysCount.value; d++) {
+        weekState.value[d] &= ~disabledState.value[d]
+      }
+      const newRanges = toStringArray()
+      emit('update:modelValue', newRanges)
+      emit('change', newRanges)
+    }
+  }
 )
 
 // Computed for display
@@ -165,6 +186,11 @@ const handleSelect = (...args: [number, number, number, number, boolean]) => {
 
   for (let d = startDay; d <= endDay; d++) {
     toggleRange(d, startTime, endTime, isAdd)
+
+    // If canOverlapDisabled is true, remove disabled bits immediately
+    if (props.canOverlapDisabled) {
+      weekState.value[d] &= ~disabledState.value[d]
+    }
   }
 
   // Check for overlap with disabled
@@ -258,6 +284,11 @@ const toggleDay = (day: number, e: Event) => {
   }
   const checked = (e.target as HTMLInputElement).checked
   toggleRange(day, 0, 47, checked)
+
+  if (props.canOverlapDisabled) {
+    weekState.value[day] &= ~disabledState.value[day]
+  }
+
   const newRanges = toStringArray()
   emit('update:modelValue', newRanges)
   emit('change', newRanges)

@@ -99,4 +99,49 @@ describe('TimeSchedule', () => {
     const cells = wrapper.findAll('.schedule-cell')
     expect(cells[0].classes()).toContain('schedule-error')
   })
+
+  it('excludes disabled areas when canOverlapDisabled is true', async () => {
+    const disabled = [['00:00~01:00'], [], [], [], [], [], []]
+    const wrapper = mount(TimeSchedule, {
+      props: {
+        disabled,
+        canOverlapDisabled: true
+      }
+    })
+
+    // Simulate selection overlapping disabled area
+    // We simulate this by manually updating the internal state via a prop update that triggers the watcher
+    // or by mocking the interaction.
+    // Since we added a watcher for canOverlapDisabled, we can test that too.
+
+    // First set some selection that overlaps
+    await wrapper.setProps({
+      modelValue: [['00:00~02:00'], [], [], [], [], [], []],
+      canOverlapDisabled: false // Initially false, so it overlaps
+    })
+
+    // Now switch canOverlapDisabled to true
+    await wrapper.setProps({
+      canOverlapDisabled: true
+    })
+
+    // The disabled part (00:00~01:00) should be removed from selection
+    // So only 01:00~02:00 should be selected.
+    // 00:00~01:00 is index 0, 1.
+    // 01:00~02:00 is index 2, 3.
+
+    const cells = wrapper.findAll('.schedule-cell')
+    // Index 0, 1 should NOT be selected (masked out)
+    expect(cells[0].classes()).not.toContain('schedule-selected')
+    expect(cells[1].classes()).not.toContain('schedule-selected')
+    // Index 2, 3 SHOULD be selected
+    expect(cells[2].classes()).toContain('schedule-selected')
+    expect(cells[3].classes()).toContain('schedule-selected')
+
+    // Also check emitted value
+    const emitted = wrapper.emitted('update:modelValue')
+    const lastEmit = emitted![emitted!.length - 1][0] as string[][]
+    // Should be [['01:00~02:00'], ...]
+    expect(lastEmit[0]).toEqual(['01:00~02:00'])
+  })
 })
