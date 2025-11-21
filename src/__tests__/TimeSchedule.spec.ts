@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import TimeSchedule from '../TimeSchedule.vue'
 
+import { useTimeBitmask } from '../composables/useTimeBitmask'
+
 describe('TimeSchedule', () => {
   it('renders properly', () => {
     const wrapper = mount(TimeSchedule)
@@ -143,5 +145,71 @@ describe('TimeSchedule', () => {
     const lastEmit = emitted![emitted!.length - 1][0] as string[][]
     // Should be [['01:00~02:00'], ...]
     expect(lastEmit[0]).toEqual(['01:00~02:00'])
+  })
+
+  it('correctly updates when selecting multiple ranges on the same day (logic test)', () => {
+    const { weekState, fromStringArray, toStringArray, toggleRange } = useTimeBitmask(1)
+
+    // 1. Initial state: empty
+    fromStringArray([[]])
+
+    // 2. User selects 00:00~01:00 (indices 0, 1)
+    // Snapshot is empty (0n)
+    let snapshot = [...weekState.value]
+
+    // Drag operation: toggle 0-1, isAdd=true
+    weekState.value = [...snapshot]
+    toggleRange(0, 0, 1, true)
+
+    // Mouse up: emit
+    let output = toStringArray()
+    expect(output[0]).toEqual(['00:00~01:00'])
+
+    // Parent updates prop -> watcher calls fromStringArray
+    fromStringArray(output)
+
+    // 3. User selects 02:00~03:00 (indices 4, 5)
+    // Snapshot is current state (bits 0, 1 set)
+    snapshot = [...weekState.value]
+
+    // Drag operation: toggle 4-5, isAdd=true
+    weekState.value = [...snapshot]
+    toggleRange(0, 4, 5, true)
+
+    // Mouse up: emit
+    output = toStringArray()
+    // Should contain both ranges
+    expect(output[0]).toEqual(['00:00~01:00', '02:00~03:00'])
+
+    // Parent updates prop
+    fromStringArray(output)
+
+    // 4. User selects 04:00~05:00 (indices 8, 9)
+    snapshot = [...weekState.value]
+    weekState.value = [...snapshot]
+    toggleRange(0, 8, 9, true)
+
+    output = toStringArray()
+    expect(output[0]).toEqual(['00:00~01:00', '02:00~03:00', '04:00~05:00'])
+
+    // 5. User fills the gap 01:00~02:00 (indices 2, 3)
+    snapshot = [...weekState.value]
+    weekState.value = [...snapshot]
+    toggleRange(0, 2, 3, true)
+
+    output = toStringArray()
+    // Should merge into one range 00:00~05:00
+    // 00:00~03:00 covers 0-5. 04:00~05:00 covers 8-9.
+    // Gap at 6-7 (03:00~04:00).
+    expect(output[0]).toEqual(['00:00~03:00', '04:00~05:00'])
+
+    // 6. User deselects middle 02:00~03:00 (indices 4, 5)
+    fromStringArray(output)
+    snapshot = [...weekState.value]
+    weekState.value = [...snapshot]
+    toggleRange(0, 4, 5, false)
+
+    output = toStringArray()
+    expect(output[0]).toEqual(['00:00~02:00', '04:00~05:00'])
   })
 })
