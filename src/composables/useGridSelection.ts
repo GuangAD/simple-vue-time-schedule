@@ -6,9 +6,10 @@ export interface GridSelectionOptions {
   cols: number
   containerRef: Ref<HTMLElement | null>
   onSelect: (startDay: number, startTime: number, endDay: number, endTime: number, isAdd: boolean) => void
+  onSelectEnd?: () => void
 }
 
-export function useGridSelection({ rows, cols, containerRef, onSelect }: GridSelectionOptions) {
+export function useGridSelection({ rows, cols, containerRef, onSelect, onSelectEnd }: GridSelectionOptions) {
   const isDragging = ref(false)
   const startCell = ref<{ day: number; time: number } | null>(null)
   const currentCell = ref<{ day: number; time: number } | null>(null)
@@ -93,6 +94,10 @@ export function useGridSelection({ rows, cols, containerRef, onSelect }: GridSel
 
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
+
+    if (onSelectEnd) {
+      onSelectEnd()
+    }
   }
 
   onUnmounted(() => {

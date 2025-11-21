@@ -181,7 +181,9 @@ const handleSelect = (...args: [number, number, number, number, boolean]) => {
   if (hasOverlap) {
     emit('error', mergedTextConfig.value.error)
   }
+}
 
+const handleSelectEnd = () => {
   const newRanges = toStringArray()
   emit('update:modelValue', newRanges)
   emit('change', newRanges)
@@ -191,7 +193,8 @@ const { handleMouseDown } = useGridSelection({
   rows: daysCount.value,
   cols: 48,
   containerRef: gridContainer,
-  onSelect: handleSelect
+  onSelect: handleSelect,
+  onSelectEnd: handleSelectEnd
 })
 
 // Update grid selection rows when labels change
