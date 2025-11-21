@@ -109,7 +109,7 @@ const handleError = (msg: string) => {
 }
 
 const handleChange = (val: string[][]) => {
-  logs.value.unshift(`[Change] Value updated`, val)
+  logs.value.unshift(`[Change] Value updated ${val.toString()}`)
 }
 
 const reset = () => {
