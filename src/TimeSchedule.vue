@@ -70,6 +70,8 @@ const props = defineProps({
     default: () => ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
   },
   readonly: { type: Boolean, default: false },
+  canDrop: { type: Boolean, default: true },
+  canOverlapDisabled: { type: Boolean, default: false },
   showFooter: { type: Boolean, default: true },
   showHeader: { type: Boolean, default: true },
   showCheckbox: { type: Boolean, default: false },
@@ -110,7 +112,8 @@ const baseClass = computed(() => ['schedule', props.showCheckbox ? 'schedule-sho
 
 // --- Core Logic ---
 const daysCount = computed(() => props.labels.length)
-const { weekState, fromStringArray, toStringArray, toggleRange } = useTimeBitmask(daysCount.value)
+const { weekState, disabledState, fromStringArray, fromDisabledStringArray, toStringArray, toggleRange } =
+  useTimeBitmask(daysCount.value)
 
 // Re-init bitmask if labels length changes (unlikely but good to handle)
 watch(daysCount, () => {
@@ -118,6 +121,7 @@ watch(daysCount, () => {
   // But changing labels length usually means context switch.
   // We'll just re-sync from modelValue.
   fromStringArray(props.modelValue)
+  fromDisabledStringArray(props.disabled)
 })
 
 // Sync modelValue to Bitmask
@@ -125,6 +129,15 @@ watch(
   () => props.modelValue,
   (newVal) => {
     fromStringArray(newVal)
+  },
+  { immediate: true, deep: true }
+)
+
+// Sync disabled to Bitmask
+watch(
+  () => props.disabled,
+  (newVal) => {
+    fromDisabledStringArray(newVal)
   },
   { immediate: true, deep: true }
 )
@@ -152,6 +165,21 @@ const handleSelect = (...args: [number, number, number, number, boolean]) => {
 
   for (let d = startDay; d <= endDay; d++) {
     toggleRange(d, startTime, endTime, isAdd)
+  }
+
+  // Check for overlap with disabled
+  let hasOverlap = false
+  if (!props.canOverlapDisabled) {
+    for (let d = 0; d < daysCount.value; d++) {
+      if ((weekState.value[d] & disabledState.value[d]) !== 0n) {
+        hasOverlap = true
+        break
+      }
+    }
+  }
+
+  if (hasOverlap) {
+    emit('error', mergedTextConfig.value.error)
   }
 
   const newRanges = toStringArray()
@@ -192,9 +220,19 @@ const onGridMouseDown = (e: MouseEvent) => {
 
 // --- Helpers ---
 const getCellClass = (day: number, time: number) => {
-  const isSelected = (weekState.value[day] & (1n << BigInt(time))) !== 0n
+  const mask = 1n << BigInt(time)
+  const isSelected = (weekState.value[day] & mask) !== 0n
+  const isDisabled = (disabledState.value[day] & mask) !== 0n
+
   const classes = []
-  if (isSelected) {
+
+  if (isDisabled) {
+    if (isSelected && !props.canOverlapDisabled) {
+      classes.push('schedule-error')
+    } else {
+      classes.push('schedule-disabled')
+    }
+  } else if (isSelected) {
     classes.push('schedule-selected')
   }
 
@@ -350,11 +388,24 @@ const gridStyle = computed(() => ({
   background-color: var(--schedule-primary-color);
 }
 
+.schedule-disabled {
+  background-color: var(--schedule-disabled-color);
+  cursor: not-allowed;
+}
+
+.schedule-error {
+  background-color: var(--schedule-error-color);
+}
+
 .schedule-cell:hover {
   background-color: var(--schedule-hover-bg);
 }
 .schedule-selected:hover {
   background-color: var(--schedule-primary-color); /* Keep primary color on hover if selected */
+  opacity: 0.8;
+}
+.schedule-error:hover {
+  background-color: var(--schedule-error-color);
   opacity: 0.8;
 }
 

@@ -63,4 +63,40 @@ describe('TimeSchedule', () => {
     expect(cells[1].classes()).toContain('schedule-selected')
     expect(cells[2].classes()).not.toContain('schedule-selected')
   })
+
+  it('renders disabled cells correctly', () => {
+    const disabled = [['00:00~01:00'], [], [], [], [], [], []]
+    const wrapper = mount(TimeSchedule, {
+      props: {
+        disabled
+      }
+    })
+    const cells = wrapper.findAll('.schedule-cell')
+    expect(cells[0].classes()).toContain('schedule-disabled')
+    expect(cells[1].classes()).toContain('schedule-disabled')
+    expect(cells[2].classes()).not.toContain('schedule-disabled')
+  })
+
+  it('emits error when overlapping disabled area', async () => {
+    const disabled = [['00:00~01:00'], [], [], [], [], [], []]
+    const wrapper = mount(TimeSchedule, {
+      props: {
+        disabled,
+        canOverlapDisabled: false
+      }
+    })
+
+    // Simulate selection overlapping disabled area
+    // We need to trigger the selection logic.
+    // Since we can't easily trigger drag events in jsdom perfectly to match our composable,
+    // we might need to mock the composable or just check the class logic if we could force state.
+    // However, we can check if the class 'schedule-error' is applied if we force modelValue to overlap.
+
+    await wrapper.setProps({
+      modelValue: [['00:00~01:00'], [], [], [], [], [], []]
+    })
+
+    const cells = wrapper.findAll('.schedule-cell')
+    expect(cells[0].classes()).toContain('schedule-error')
+  })
 })

@@ -10,6 +10,7 @@
     :show-footer="false"
     :show-header="false"
     :disabled="disabled"
+    :can-overlap-disabled="canOverlapDisabled"
     :theme="theme"
   />
 </template>
@@ -36,6 +37,10 @@ const props = defineProps({
   theme: {
     type: Object as PropType<ThemeConfig>,
     default: () => ({})
+  },
+  canOverlapDisabled: {
+    type: Boolean,
+    default: false
   }
 })
 

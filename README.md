@@ -56,26 +56,13 @@ const schedule = ref([])
 ### Props
 
 | Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| `modelValue` | `string[][]` | `[]` | The selected time ranges. |
-| `dateList` | `string[]` | `['星期一', ...]` | List of row labels (e.g., days of the week). |
-| `textConfig` | `Object` | `{}` | Configuration for UI text (i18n). |
-| `canDrop` | `boolean` | `true` | Whether drag selection is enabled. |
-| `canOverlap` | `boolean` | `false` | Whether selection can overlap with disabled ranges. |
-| `disabledTimeRange` | `string[][]` | `[]` | Time ranges that cannot be selected. |
-| `showFooter` | `boolean` | `true` | Whether to show the footer with selected times. |
-| `showHeader` | `boolean` | `true` | Whether to show the header with time labels. |
-| `showCheckbox` | `boolean` | `false` | Whether to show checkboxes for row selection. |
-| `showDateLabel` | `boolean` | `true` | Whether to show the row labels column. |
-| `labelWidth` | `number` | `75` | Width of the row labels column. |
+| ---- | ---- | ------- | ----------- |
 
-### Events
-
-| Name | Arguments | Description |
-| --- | --- | --- |
-| `update:modelValue` | `(value: string[][])` | Emitted when selection changes. |
-| `change` | `(value: string[][])` | Alias for `update:modelValue`. |
-| `error` | `(message: string)` | Emitted when an error occurs (e.g., overlap). |
+| Name                | Arguments             | Description                                   |
+| ------------------- | --------------------- | --------------------------------------------- |
+| `update:modelValue` | `(value: string[][])` | Emitted when selection changes.               |
+| `change`            | `(value: string[][])` | Alias for `update:modelValue`.                |
+| `error`             | `(message: string)`   | Emitted when an error occurs (e.g., overlap). |
 
 ## Customization
 
@@ -85,7 +72,7 @@ You can customize the text by passing a `textConfig` object:
 
 ```vue
 <template>
-  <TimeSchedule 
+  <TimeSchedule
     :textConfig="{
       am: '00:00 - 12:00',
       pm: '12:00 - 24:00',
@@ -102,13 +89,13 @@ You can customize the colors using CSS variables:
 
 ```css
 .schedule {
-  --schedule-primary-color: #338aff;    /* Selected color */
-  --schedule-error-color: #f70909;      /* Error/Overlap color */
-  --schedule-disabled-color: #ddd;      /* Disabled color */
-  --schedule-hover-bg: #f0f0f0;         /* Hover background */
-  --schedule-border-color: #ebebeb;     /* Border color */
-  --schedule-text-color: #333;          /* Main text color */
-  --schedule-subtext-color: #666;       /* Secondary text color */
+  --schedule-primary-color: #338aff; /* Selected color */
+  --schedule-error-color: #f70909; /* Error/Overlap color */
+  --schedule-disabled-color: #ddd; /* Disabled color */
+  --schedule-hover-bg: #f0f0f0; /* Hover background */
+  --schedule-border-color: #ebebeb; /* Border color */
+  --schedule-text-color: #333; /* Main text color */
+  --schedule-subtext-color: #666; /* Secondary text color */
 }
 ```
 

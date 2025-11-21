@@ -4,6 +4,7 @@ import { parseRangeToBitmask, formatBitmaskToRanges } from '../utils'
 export function useTimeBitmask(daysCount = 7) {
   // 每天用一个 BigInt 表示 48 个半小时
   const weekState = ref<bigint[]>(new Array(daysCount).fill(0n))
+  const disabledState = ref<bigint[]>(new Array(daysCount).fill(0n))
 
   // 从字符串数组导入
   const fromStringArray = (data: string[][]) => {
@@ -21,6 +22,22 @@ export function useTimeBitmask(daysCount = 7) {
     weekState.value = newState
   }
 
+  // 导入不可用区域
+  const fromDisabledStringArray = (data: string[][]) => {
+    const newState = new Array(daysCount).fill(0n)
+    data.forEach((dayRanges, dayIndex) => {
+      if (dayIndex >= daysCount) {
+        return
+      }
+      let mask = 0n
+      dayRanges.forEach((rangeStr) => {
+        mask |= parseRangeToBitmask(rangeStr)
+      })
+      newState[dayIndex] = mask
+    })
+    disabledState.value = newState
+  }
+
   // 导出为字符串数组
   const toStringArray = (): string[][] => {
     return weekState.value.map((dayBits) => formatBitmaskToRanges(dayBits))
@@ -33,7 +50,7 @@ export function useTimeBitmask(daysCount = 7) {
       return
     }
 
-    const length = BigInt(end - start + 1)
+    const length = BigInt((end ?? start) - start + 1)
     const mask = ((1n << length) - 1n) << BigInt(start)
 
     if (value) {
@@ -45,7 +62,9 @@ export function useTimeBitmask(daysCount = 7) {
 
   return {
     weekState,
+    disabledState,
     fromStringArray,
+    fromDisabledStringArray,
     toStringArray,
     toggleRange
   }
