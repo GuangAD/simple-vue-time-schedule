@@ -66,7 +66,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-const schedule = ref<string[][]>([])
+const schedule = ref<string[][]>([['00:00~02:00', '12:00~13:00']])
 const singleSchedule = ref<string[]>([])
 const readonly = ref(false)
 const canOverlapDisabled = ref(false)
@@ -110,7 +110,7 @@ const handleError = (msg: string) => {
 }
 
 const handleChange = (val: string[][]) => {
-  logs.value.unshift(`[Change] Value updated ${val.toString()}`)
+  logs.value.unshift(`[Change] Value updated ${val}`)
 }
 
 const reset = () => {

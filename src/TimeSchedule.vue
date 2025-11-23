@@ -116,19 +116,37 @@ const { weekState, disabledState, fromStringArray, fromDisabledStringArray, toSt
   useTimeBitmask(daysCount.value)
 
 // Re-init bitmask if labels length changes (unlikely but good to handle)
-watch(daysCount, () => {
-  // Note: this resets state. In a real app we might want to preserve data.
-  // But changing labels length usually means context switch.
-  // We'll just re-sync from modelValue.
-  fromStringArray(props.modelValue)
-  fromDisabledStringArray(props.disabled)
-})
+watch(
+  daysCount,
+  () => {
+    // Note: this resets state. In a real app we might want to preserve data.
+    // But changing labels length usually means context switch.
+    // We'll just re-sync from modelValue.
+    fromStringArray(props.modelValue)
+    fromDisabledStringArray(props.disabled)
+  },
+  { immediate: true, deep: true }
+)
 
 // Sync modelValue to Bitmask
 watch(
   () => props.modelValue,
   (newVal) => {
     fromStringArray(newVal)
+    // Check for overlap with disabled
+    if (!props.canOverlapDisabled) {
+      let hasOverlap = false
+      for (let d = 0; d < daysCount.value; d++) {
+        if ((weekState.value[d] & disabledState.value[d]) !== 0n) {
+          hasOverlap = true
+          break
+        }
+      }
+
+      if (hasOverlap) {
+        emit('error', mergedTextConfig.value.error)
+      }
+    }
   },
   { immediate: true, deep: true }
 )
@@ -192,7 +210,9 @@ const handleSelect = (...args: [number, number, number, number, boolean]) => {
       weekState.value[d] &= ~disabledState.value[d]
     }
   }
+}
 
+const handleSelectEnd = () => {
   // Check for overlap with disabled
   let hasOverlap = false
   if (!props.canOverlapDisabled) {
@@ -207,9 +227,7 @@ const handleSelect = (...args: [number, number, number, number, boolean]) => {
   if (hasOverlap) {
     emit('error', mergedTextConfig.value.error)
   }
-}
 
-const handleSelectEnd = () => {
   const newRanges = toStringArray()
   emit('update:modelValue', newRanges)
   emit('change', newRanges)
@@ -354,6 +372,7 @@ const gridStyle = computed(() => ({
   text-align: center;
   border-right: 1px solid var(--schedule-border-color);
 }
+
 .hour-cell:last-child {
   border-right: none;
 }
@@ -370,12 +389,14 @@ const gridStyle = computed(() => ({
 }
 
 .schedule-label-cell {
-  height: 30px; /* Fixed height for now, matches grid row */
+  height: 30px;
+  /* Fixed height for now, matches grid row */
   display: flex;
   align-items: center;
   padding-left: 10px;
   border-bottom: 1px solid var(--schedule-border-color);
 }
+
 .schedule-label-cell:last-child {
   border-bottom: none;
 }
@@ -435,10 +456,13 @@ const gridStyle = computed(() => ({
 .schedule-cell:hover {
   background-color: var(--schedule-hover-bg);
 }
+
 .schedule-selected:hover {
-  background-color: var(--schedule-primary-color); /* Keep primary color on hover if selected */
+  background-color: var(--schedule-primary-color);
+  /* Keep primary color on hover if selected */
   opacity: 0.8;
 }
+
 .schedule-error:hover {
   background-color: var(--schedule-error-color);
   opacity: 0.8;
@@ -450,6 +474,7 @@ const gridStyle = computed(() => ({
   font-size: 12px;
   color: var(--schedule-subtext-color);
 }
+
 .schedule-tip-text {
   margin-right: 10px;
   font-weight: bold;
