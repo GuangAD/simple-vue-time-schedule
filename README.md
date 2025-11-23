@@ -2,6 +2,8 @@
 
 A simple, drag-and-drop time schedule selector for Vue 3.
 
+![Simple Vue Time Schedule](https://github.com/GuangAD/simple-vue-time-schedule/blob/main/image/main.png?raw=true)
+
 ## Features
 
 - 📅 **Drag-and-drop** time selection
