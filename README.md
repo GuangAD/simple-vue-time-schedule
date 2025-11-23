@@ -56,29 +56,29 @@ const schedule = ref([])
 
 ### Props
 
-| Name | Type | Default | Description |
-|Str |Str |Str |Str |
-| `modelValue` | `string[][]` | `[]` | The selected time ranges. Two-dimensional array where index corresponds to the day (0-6). Example: `[['09:00~12:00'], [], ...]` |
-| `disabled` | `string[][]` | `[]` | Disabled time ranges. Same format as `modelValue`. |
-| `labels` | `string[]` | `['星期一', ...]` | Labels for the rows (e.g., days of the week). |
-| `readonly` | `boolean` | `false` | If `true`, disables interaction. |
-| `canDrop` | `boolean` | `true` | Whether drag-and-drop is enabled (currently behaves same as readonly for selection). |
-| `canOverlapDisabled` | `boolean` | `false` | If `true`, allows selecting time ranges that overlap with disabled areas (removes disabled status). |
-| `showFooter` | `boolean` | `true` | Whether to show the footer with selected ranges summary. |
-| `showHeader` | `boolean` | `true` | Whether to show the header with time labels. |
-| `showCheckbox` | `boolean` | `false` | Whether to show checkboxes for selecting entire rows. |
-| `showDateLabel` | `boolean` | `true` | Whether to show the row labels column. |
-| `labelWidth` | `number` | `75` | Width of the label column in pixels. |
-| `textConfig` | `object` | `{}` | Configuration for text strings (i18n). See below. |
-| `theme` | `object` | `{}` | Theme configuration object. See below. |
+| Name                 | Type         | Default           | Description                                                                                                                     |
+| -------------------- | ------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `modelValue`         | `string[][]` | `[]`              | The selected time ranges. Two-dimensional array where index corresponds to the day (0-6). Example: `[['09:00~12:00'], [], ...]` |
+| `disabled`           | `string[][]` | `[]`              | Disabled time ranges. Same format as `modelValue`.                                                                              |
+| `labels`             | `string[]`   | `['星期一', ...]` | Labels for the rows (e.g., days of the week).                                                                                   |
+| `readonly`           | `boolean`    | `false`           | If `true`, disables interaction.                                                                                                |
+| `canDrop`            | `boolean`    | `true`            | Whether drag-and-drop is enabled (currently behaves same as readonly for selection).                                            |
+| `canOverlapDisabled` | `boolean`    | `false`           | If `true`, allows selecting time ranges that overlap with disabled areas (removes disabled status).                             |
+| `showFooter`         | `boolean`    | `true`            | Whether to show the footer with selected ranges summary.                                                                        |
+| `showHeader`         | `boolean`    | `true`            | Whether to show the header with time labels.                                                                                    |
+| `showCheckbox`       | `boolean`    | `false`           | Whether to show checkboxes for selecting entire rows.                                                                           |
+| `showDateLabel`      | `boolean`    | `true`            | Whether to show the row labels column.                                                                                          |
+| `labelWidth`         | `number`     | `75`              | Width of the label column in pixels.                                                                                            |
+| `textConfig`         | `object`     | `{}`              | Configuration for text strings (i18n). See below.                                                                               |
+| `theme`              | `object`     | `{}`              | Theme configuration object. See below.                                                                                          |
 
 ### Events
 
-| Name | Arguments | Description |
-|Str |Str |Str |
-| `update:modelValue` | `(value: string[][])` | Emitted when selection changes. Used for `v-model`. |
-| `change` | `(value: string[][])` | Alias for `update:modelValue`. |
-| `error` | `(message: string)` | Emitted when an error occurs (e.g., trying to select an invalid range). |
+| Name                | Arguments             | Description                                                             |
+| ------------------- | --------------------- | ----------------------------------------------------------------------- |
+| `update:modelValue` | `(value: string[][])` | Emitted when selection changes. Used for `v-model`.                     |
+| `change`            | `(value: string[][])` | Alias for `update:modelValue`.                                          |
+| `error`             | `(message: string)`   | Emitted when an error occurs (e.g., trying to select an invalid range). |
 
 ### Text Configuration (`textConfig`)
 
