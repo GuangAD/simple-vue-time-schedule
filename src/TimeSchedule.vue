@@ -35,6 +35,8 @@
             :key="timeIndex - 1"
             class="schedule-cell"
             :class="getCellClass(dayIndex, timeIndex - 1)"
+            :data-day="dayIndex"
+            :data-time="timeIndex - 1"
           ></div>
         </template>
       </div>
@@ -269,7 +271,17 @@ const onGridMouseDown = (e: MouseEvent) => {
   dragStartSnapshot = [...weekState.value]
 
   const target = e.target as HTMLElement
-  const isSelected = target.classList.contains('schedule-selected')
+  // Ensure we are clicking a cell
+  if (!target.classList.contains('schedule-cell')) {
+    return
+  }
+
+  const day = parseInt(target.dataset.day!, 10)
+  const time = parseInt(target.dataset.time!, 10)
+
+  // Check bitmask instead of class
+  const mask = 1n << BigInt(time)
+  const isSelected = (weekState.value[day] & mask) !== 0n
 
   handleMouseDown(e, !isSelected)
 }
