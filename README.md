@@ -31,7 +31,7 @@ yarn add @ggc12319/simple-vue-time-schedule
 import { createApp } from 'vue'
 import App from './App.vue'
 import SimpleTimeSchedule from '@ggc12319/simple-vue-time-schedule'
-import '@ggc12319/simple-vue-time-schedule/dist/style.css'
+import '@ggc12319/simple-vue-time-schedule/style.css'
 
 const app = createApp(App)
 app.use(SimpleTimeSchedule)
@@ -44,7 +44,7 @@ app.mount('#app')
 <script setup>
 import { ref } from 'vue'
 import { TimeSchedule } from '@ggc12319/simple-vue-time-schedule'
-import '@ggc12319/simple-vue-time-schedule/dist/style.css'
+import '@ggc12319/simple-vue-time-schedule/style.css'
 
 const schedule = ref([])
 </script>
