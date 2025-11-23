@@ -8,14 +8,23 @@ export interface GridSelectionOptions {
   onSelect: (startDay: number, startTime: number, endDay: number, endTime: number, isAdd: boolean) => void
   onSelectEnd?: () => void
 }
-
+/**
+ * 网格选择器
+ * @param param0 网格选择器选项
+ * @returns 网格选择器实例
+ */
 export function useGridSelection({ rows, cols, containerRef, onSelect, onSelectEnd }: GridSelectionOptions) {
   const isDragging = ref(false)
   const startCell = ref<{ day: number; time: number } | null>(null)
   const currentCell = ref<{ day: number; time: number } | null>(null)
   const isAdd = ref(true) // true for select, false for deselect
 
-  // 获取坐标对应的格子
+  /**
+   * 获取坐标对应的格子
+   * @param x 鼠标 X 坐标
+   * @param y 鼠标 Y 坐标
+   * @returns 格子坐标 { day: number, time: number } 或 null (无效输入或超出范围)
+   */
   const getCellFromCoords = (x: number, y: number) => {
     if (!containerRef.value) {
       return null

@@ -5,6 +5,9 @@ const dayHour = Array.from({ length: 24 }, (_, i) => i)
 
 /**
  * 辅助函数：根据半小时 ID (0-47) 和类型 ('start' 或 'end') 获取时钟字符串
+ * @param id - 半小时 ID (0-47)
+ * @param type - 时间类型 ('start' 或 'end')
+ * @returns 时钟字符串 (例如: '08:00', '08:30', '23:30', '24:00')
  */
 function getClockString(id: number, type: 'start' | 'end'): string {
   if (!Number.isInteger(id)) {
@@ -38,6 +41,9 @@ function getClockString(id: number, type: 'start' | 'end'): string {
 
 /**
  * 辅助函数：根据时间点字符串和类型生成半小时 ID (0-47)
+ * @param timeStr - 时间点字符串 (例如: '08:00', '08:30', '23:30', '24:00')
+ * @param type - 时间类型 ('start' 或 'end')
+ * @returns 半小时 ID (0-47) 或 -1 (无效输入)
  */
 function getIndexFromClockString(timeStr: string, type: 'start' | 'end'): number {
   if (!timeStr) {
@@ -77,6 +83,8 @@ function getIndexFromClockString(timeStr: string, type: 'start' | 'end'): number
 /**
  * 将时间范围字符串转换为位图掩码
  * 例如: "00:00~01:00" -> 3n (二进制 11)
+ * @param rangeStr - 时间范围字符串 (例如: "00:00~01:00")
+ * @returns 位图掩码 (例如: 3n) 或 0n (无效输入)
  */
 function parseRangeToBitmask(rangeStr: string): bigint {
   if (!rangeStr) {

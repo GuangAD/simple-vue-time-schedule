@@ -4,12 +4,14 @@
   "description": "",
   "main": "dist/simple-vue-time-schedule.cjs.js",
   "module": "dist/simple-vue-time-schedule.es.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "files": [
     "dist"
   ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/simple-vue-time-schedule.es.js",
       "require": "./dist/simple-vue-time-schedule.cjs.js"
     },
