@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@ggc12319/simple-vue-time-schedule':
-        specifier: ^1.0.0
-        version: 1.0.0(vue@3.5.24(typescript@5.8.3))
+        specifier: ^1.0.2
+        version: 1.0.2(vue@3.5.24(typescript@5.8.3))
     devDependencies:
       '@prettier/plugin-oxc':
         specifier: ^0.0.4
@@ -496,8 +496,8 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@ggc12319/simple-vue-time-schedule@1.0.0':
-    resolution: {integrity: sha512-6YyVtlpxUdVo6b2w5L7Vi7+MuOQeGhoFhFWkISlEqDIVLxf0iGNnOao1ybgNmuQ7HZEQviL5HoqVoqkt26/wUA==}
+  '@ggc12319/simple-vue-time-schedule@1.0.2':
+    resolution: {integrity: sha512-qB2Ls2aQhmM39KjWrALgoOD3j7+82HSbm+I8icKD4sFB9Nh/c4ztcVN15ddTvMypOSgQjp4wJrt27D9UoPh01Q==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -3431,7 +3431,7 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@ggc12319/simple-vue-time-schedule@1.0.0(vue@3.5.24(typescript@5.8.3))':
+  '@ggc12319/simple-vue-time-schedule@1.0.2(vue@3.5.24(typescript@5.8.3))':
     dependencies:
       vue: 3.5.24(typescript@5.8.3)
 
