@@ -110,6 +110,41 @@ const cssVars = computed(() => ({
 
 const baseClass = computed(() => ['schedule', props.showCheckbox ? 'schedule-show-checkbox' : ''])
 
+// Debounce helper
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const debounce = <T extends (...args: any[]) => void>(fn: T, delay: number) => {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+  return (...args: Parameters<T>) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+    timeoutId = setTimeout(() => {
+      fn(...args)
+    }, delay)
+  }
+}
+
+// Check for overlap with disabled
+const checkOverlap = () => {
+  if (props.canOverlapDisabled) {
+    return
+  }
+
+  let hasOverlap = false
+  for (let d = 0; d < daysCount.value; d++) {
+    if ((weekState.value[d] & disabledState.value[d]) !== 0n) {
+      hasOverlap = true
+      break
+    }
+  }
+
+  if (hasOverlap) {
+    emit('error', mergedTextConfig.value.error)
+  }
+}
+
+const debouncedCheckOverlap = debounce(checkOverlap, 50)
+
 // --- Core Logic ---
 const daysCount = computed(() => props.labels.length)
 const { weekState, disabledState, fromStringArray, fromDisabledStringArray, toStringArray, toggleRange } =
@@ -133,20 +168,7 @@ watch(
   () => props.modelValue,
   (newVal) => {
     fromStringArray(newVal)
-    // Check for overlap with disabled
-    if (!props.canOverlapDisabled) {
-      let hasOverlap = false
-      for (let d = 0; d < daysCount.value; d++) {
-        if ((weekState.value[d] & disabledState.value[d]) !== 0n) {
-          hasOverlap = true
-          break
-        }
-      }
-
-      if (hasOverlap) {
-        emit('error', mergedTextConfig.value.error)
-      }
-    }
+    debouncedCheckOverlap()
   },
   { immediate: true, deep: true }
 )
@@ -161,6 +183,8 @@ watch(
       for (let d = 0; d < daysCount.value; d++) {
         weekState.value[d] &= ~disabledState.value[d]
       }
+    } else {
+      debouncedCheckOverlap()
     }
   },
   { immediate: true, deep: true }
@@ -213,21 +237,6 @@ const handleSelect = (...args: [number, number, number, number, boolean]) => {
 }
 
 const handleSelectEnd = () => {
-  // Check for overlap with disabled
-  let hasOverlap = false
-  if (!props.canOverlapDisabled) {
-    for (let d = 0; d < daysCount.value; d++) {
-      if ((weekState.value[d] & disabledState.value[d]) !== 0n) {
-        hasOverlap = true
-        break
-      }
-    }
-  }
-
-  if (hasOverlap) {
-    emit('error', mergedTextConfig.value.error)
-  }
-
   const newRanges = toStringArray()
   emit('update:modelValue', newRanges)
   emit('change', newRanges)
