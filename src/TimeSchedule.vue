@@ -399,6 +399,7 @@ const gridStyle = computed(() => ({
 .schedule-cell {
   border-right: 1px solid #eee;
   border-bottom: 1px solid #eee;
+  min-height: 30px;
   /* Half-hour dashed line logic could be added here with nth-child */
 }
 

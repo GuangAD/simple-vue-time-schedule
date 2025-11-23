@@ -1,18 +1,7 @@
 <template>
-  <time-schedule
-    :model-value="selected"
-    @update:model-value="handleChange"
-    @error="handleError"
-    :show-checkbox="false"
-    :readonly="readonly"
-    :show-date-label="false"
-    :labels="labels"
-    :show-footer="false"
-    :show-header="false"
-    :disabled="disabled"
-    :can-overlap-disabled="canOverlapDisabled"
-    :theme="theme"
-  />
+  <time-schedule :model-value="selected" @update:model-value="handleChange" @error="handleError" :show-checkbox="false"
+    :readonly="readonly" :show-date-label="false" :labels="labels" :show-footer="showFooter" :show-header="showHeader"
+    :disabled="disabled" :can-overlap-disabled="canOverlapDisabled" :theme="theme" />
 </template>
 
 <script setup lang="ts">
@@ -25,6 +14,14 @@ const props = defineProps({
   modelValue: {
     type: Array as PropType<string[]>,
     default: () => []
+  },
+  showHeader: {
+    type: Boolean,
+    default: true
+  },
+  showFooter: {
+    type: Boolean,
+    default: true
   },
   readonly: {
     type: Boolean,

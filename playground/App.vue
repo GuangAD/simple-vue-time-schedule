@@ -32,6 +32,7 @@
         :readonly="readonly"
         :can-overlap-disabled="canOverlapDisabled"
         :show-footer="showFooter"
+        :show-checkbox="true"
         :labels="labels"
         :theme="currentTheme"
         @error="handleError"
