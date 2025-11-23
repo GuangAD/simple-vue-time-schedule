@@ -15,7 +15,7 @@
       "import": "./dist/simple-vue-time-schedule.es.js",
       "require": "./dist/simple-vue-time-schedule.cjs.js"
     },
-    "./style": "./dist/simple-vue-time-schedule.css"
+    "./style.css": "./dist/style.css"
   },
   "scripts": {
     "dev": "vite dev",
@@ -68,5 +68,7 @@
   "bugs": {
     "url": "https://github.com/GuangAD/simple-vue-time-schedule/issues"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@ggc12319/simple-vue-time-schedule": "^1.0.0"
+  }
 }
