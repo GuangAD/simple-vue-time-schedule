@@ -53,8 +53,5 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "debounce": "^2.2.0",
-    "fastest-json-copy": "^1.0.1"
-  }
+  "dependencies": {}
 }
