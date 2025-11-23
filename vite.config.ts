@@ -20,7 +20,7 @@ export default defineConfig({
       formats: ['es', 'cjs', 'umd'],
       name: 'SimpleTimeSchedule',
       fileName: (format) => `simple-vue-time-schedule.${format}.js`,
-      cssFileName: `simple-vue-time-schedule`
+      cssFileName: `style`
     },
     rollupOptions: {
       external: ['vue'],

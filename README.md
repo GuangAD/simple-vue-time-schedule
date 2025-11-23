@@ -16,11 +16,11 @@ A simple, drag-and-drop time schedule selector for Vue 3.
 ## Installation
 
 ```bash
-npm install simple-vue-time-schedule
+npm install @ggc12319/simple-vue-time-schedule
 # or
-pnpm add simple-vue-time-schedule
+pnpm add @ggc12319/simple-vue-time-schedule
 # or
-yarn add simple-vue-time-schedule
+yarn add @ggc12319/simple-vue-time-schedule
 ```
 
 ## Usage
@@ -30,8 +30,8 @@ yarn add simple-vue-time-schedule
 ```javascript
 import { createApp } from 'vue'
 import App from './App.vue'
-import SimpleTimeSchedule from 'simple-vue-time-schedule'
-import 'simple-vue-time-schedule/dist/style.css'
+import SimpleTimeSchedule from '@ggc12319/simple-vue-time-schedule'
+import '@ggc12319/simple-vue-time-schedule/dist/style.css'
 
 const app = createApp(App)
 app.use(SimpleTimeSchedule)
@@ -43,8 +43,8 @@ app.mount('#app')
 ```vue
 <script setup>
 import { ref } from 'vue'
-import { TimeSchedule } from 'simple-vue-time-schedule'
-import 'simple-vue-time-schedule/dist/style.css'
+import { TimeSchedule } from '@ggc12319/simple-vue-time-schedule'
+import '@ggc12319/simple-vue-time-schedule/dist/style.css'
 
 const schedule = ref([])
 </script>

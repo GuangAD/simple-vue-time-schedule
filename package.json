@@ -1,5 +1,5 @@
 {
-  "name": "simple-vue-time-schedule",
+  "name": "@ggc12319/simple-vue-time-schedule",
   "version": "1.0.0",
   "description": "A simple, drag-and-drop time schedule selector for Vue 3.",
   "main": "dist/simple-vue-time-schedule.cjs.js",
