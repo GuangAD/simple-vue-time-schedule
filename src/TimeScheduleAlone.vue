@@ -1,7 +1,18 @@
 <template>
-  <time-schedule :model-value="selected" @update:model-value="handleChange" @error="handleError" :show-checkbox="false"
-    :readonly="readonly" :show-date-label="false" :labels="labels" :show-footer="showFooter" :show-header="showHeader"
-    :disabled="disabled" :can-overlap-disabled="canOverlapDisabled" :theme="theme" />
+  <time-schedule
+    :model-value="selected"
+    @update:model-value="handleChange"
+    @error="handleError"
+    :show-checkbox="false"
+    :readonly="readonly"
+    :show-date-label="false"
+    :labels="labels"
+    :show-footer="showFooter"
+    :show-header="showHeader"
+    :disabled="disabled"
+    :can-overlap-disabled="canOverlapDisabled"
+    :theme="theme"
+  />
 </template>
 
 <script setup lang="ts">
@@ -35,6 +46,10 @@ const props = defineProps({
     type: Object as PropType<ThemeConfig>,
     default: () => ({})
   },
+  label: {
+    type: String,
+    default: '时间'
+  },
   canOverlapDisabled: {
     type: Boolean,
     default: false
@@ -46,7 +61,7 @@ const emit = defineEmits(['update:modelValue', 'change', 'error'])
 const selected = computed(() => [props.modelValue])
 const disabled = computed(() => [props.disabled])
 
-const labels = ['时间']
+const labels = computed(() => [props.label])
 
 function handleChange(newVal: string[][]) {
   emit('update:modelValue', newVal[0])
